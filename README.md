@@ -43,7 +43,15 @@ Jaid simplifies the development process, allowing you to focus on building rathe
     cd your-project-name
     ```
 
-4. **Create and Publish an App**
+4. **Link Dependencies**
+
+    Before further development, ensure all dependencies are correctly linked:
+
+    ```bash
+    jaid setup
+    ```
+
+5. **Create and Publish an App**
 
     Jaid not only allows you to create apps for personal and commercial use but also enables you to contribute to the Jaidee ecosystem by publishing your applications:
 
@@ -51,7 +59,7 @@ Jaid simplifies the development process, allowing you to focus on building rathe
     jaid new-app <app-name>
     ```
 
-    Follow the prompts to set up your app, then use the `jaid publish` command to share your app with the Jaidee community.
+    
 
 ## 🔌 Jaid Ecosystem
 
