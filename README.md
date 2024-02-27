@@ -1,6 +1,12 @@
+> ⚠️ **Under Development**: This project is currently under development. Features and documentation may change frequently.
+
 # 🚀 Jaid
 
 Jaid is a powerful command-line interface (CLI) designed for server-side rendering (SSR) with React and TypeScript. Leveraging the speed of esbuild, Jaid provides an efficient development experience with file-based routing and a framework for building scalable web applications.
+
+## 🖼️ Preview
+![Jaid CLI Preview](./docs/images/preview_react_twind_file_based_multitenant_ready.png "Jaid CLI Preview")
+
 
 ## 📦 Installation
 
@@ -21,7 +27,6 @@ Follow these simple steps to create and run your first Jaid project:
    ```bash
    jaid mkproj
    ```
-
 2. **Navigate to Your Project**
 
    Change into your newly created project directory:
@@ -29,7 +34,6 @@ Follow these simple steps to create and run your first Jaid project:
    ```bash
    cd your-project-name
    ```
-
 3. **Link Dependencies**
 
    Before creating your app, link the project's dependencies to Jaid:
@@ -37,7 +41,6 @@ Follow these simple steps to create and run your first Jaid project:
    ```bash
    jaid setup
    ```
-
 4. **Create a New App**
 
    Generate a new app within your project:
@@ -45,7 +48,6 @@ Follow these simple steps to create and run your first Jaid project:
    ```bash
    jaid new-app <app-name>
    ```
-
 5. **Start Development Server**
 
    Launch the development server to see your app in action:
@@ -53,7 +55,6 @@ Follow these simple steps to create and run your first Jaid project:
    ```bash
    jaid dev
    ```
-
 6. **Visit Your Application**
 
    Open your web browser and navigate to the website indicated in your terminal, typically `http://localhost:3000`.

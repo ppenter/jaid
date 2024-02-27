@@ -1,7 +1,6 @@
 {
   "name": "jaid",
   "version": "0.0.1",
-  "main": "src/index.tsx",
   "description": "A powerful CLI for SSR with React and TypeScript, leveraging esbuild for fast builds and file-based routing.",
   "keywords": [
     "cli",
