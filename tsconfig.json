@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "jsx": "react", // for React JSX
+    "outDir": "./dist", // Output directory for compiled files
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"], // Adjust this to your source files directory
+  "exclude": ["dist"] // Exclude directories from compilation
+}

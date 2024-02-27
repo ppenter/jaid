@@ -1,0 +1,60 @@
+{
+  "name": "jaid",
+  "version": "0.0.1",
+  "main": "src/index.tsx",
+  "description": "A powerful CLI for SSR with React and TypeScript, leveraging esbuild for fast builds and file-based routing.",
+  "keywords": [
+    "cli",
+    "esbuild",
+    "react",
+    "typescript",
+    "ssr",
+    "server-side-rendering",
+    "file-based-routing",
+    "framework"
+  ],
+  "bin": {
+    "jaid": "dist/src/cli.js"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ppenter/jaid.git"
+  },
+  "author": "Jarupak Srisuchat <jarupak.sri@gmail.com>",
+  "scripts": {
+    "link-cli": "yarn link --global && chmod +x ./dist/src/index.js",
+    "dev": "tsc -w",
+    "build-cli": "esbuild src/cli.tsx --bundle --outdir=./buildes --format=cjs --platform=node --external:'esbuild' --packages=external"
+  },
+  "dependencies": {
+    "@rtvision/esbuild-dynamic-import": "^2.0.2",
+    "@types/express": "^4.17.21",
+    "child_process": "^1.0.2",
+    "chokidar": "^3.6.0",
+    "commander": "^12.0.0",
+    "consola": "^3.2.3",
+    "esbuild": "^0.20.1",
+    "express": "^4.18.2",
+    "jsdom": "^24.0.0",
+    "nocache": "^4.0.0",
+    "node-storage": "^0.0.9",
+    "node-typescript-compiler": "^4.0.0",
+    "ora": "5.4.1",
+    "prompts": "^2.4.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tslog": "^4.9.2",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/prompt": "^1.1.8",
+    "@types/prompts": "^2.4.9",
+    "@types/react": "^18.2.58",
+    "@types/react-dom": "^18.2.19",
+    "esbuild-plugin-tsc": "^0.4.0",
+    "mkdirp": "^3.0.1",
+    "prettier": "3.2.5",
+    "react-router-dom": "^6.22.1"
+  }
+}
