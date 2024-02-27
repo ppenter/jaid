@@ -5,7 +5,7 @@
 Jaid is an innovative CLI tool designed for developers looking to leverage React, Server-Side Rendering (SSR), and multi-tenant capabilities with ease. It not only streamlines the process of setting up modern web applications but also enables developers to create and publish applications within the Jaidee framework to the Jaidee ecosystem, fostering a community-driven platform.
 
 ## 🖼️ Preview
-![Jaid CLI Preview](./docs/images/preview_react_twind_file_based_multitenant_ready.png "Jaid CLI Preview")
+![Jaid CLI Preview](./docs/images/preview_react_twind_file_based_multitenant_ready_new.png "Jaid CLI Preview")
 
 ## 📦 Installation
 
