@@ -1,16 +1,15 @@
-> ⚠️ **Under Development**: This project is currently under development. Features and documentation may change frequently.
-
 # 🚀 Jaid
 
-Jaid is a powerful command-line interface (CLI) designed for server-side rendering (SSR) with React and TypeScript. Leveraging the speed of esbuild, Jaid provides an efficient development experience with file-based routing and a framework for building scalable web applications.
+> :warning: **Under Development**: This project is under active development. Features and documentation may change.
+
+Jaid is an innovative CLI tool designed for developers looking to leverage React, Server-Side Rendering (SSR), and multi-tenant capabilities with ease. It not only streamlines the process of setting up modern web applications but also enables developers to create and publish applications within the Jaidee framework to the Jaidee ecosystem, fostering a community-driven platform.
 
 ## 🖼️ Preview
 ![Jaid CLI Preview](./docs/images/preview_react_twind_file_based_multitenant_ready.png "Jaid CLI Preview")
 
-
 ## 📦 Installation
 
-To get started with Jaid, you'll need to install it globally using Yarn. Ensure you have Yarn installed on your machine before proceeding.
+Ensure Node.js and Yarn are installed on your machine before beginning. Install Jaid globally using Yarn for easy access to its powerful features:
 
 ```bash
 yarn global add jaid
@@ -18,68 +17,55 @@ yarn global add jaid
 
 ## 🛠️ Getting Started
 
-Follow these simple steps to create and run your first Jaid project:
+Jaid simplifies the development process, allowing you to focus on building rather than configuration. Here's how to get started:
 
-1. **Create a New Project**
+1. **Install CLI**
 
-   Begin by creating a new project with Jaid:
+    Install Jaid globally to begin creating projects tailored for the Jaidee ecosystem:
 
-   ```bash
-   jaid mkproj
-   ```
-2. **Navigate to Your Project**
+    ```bash
+    yarn global add jaid
+    ```
 
-   Change into your newly created project directory:
+2. **Create a New Project**
 
-   ```bash
-   cd your-project-name
-   ```
-3. **Link Dependencies**
+    Use Jaid to scaffold a new project, setting up all necessary dependencies and configurations for React and SSR:
 
-   Before creating your app, link the project's dependencies to Jaid:
+    ```bash
+    jaid mkproj
+    ```
 
-   ```bash
-   jaid setup
-   ```
-4. **Create a New App**
+3. **Navigate to Your Project**
 
-   Generate a new app within your project:
+    Move into your project's directory to start developing:
 
-   ```bash
-   jaid new-app <app-name>
-   ```
-5. **Start Development Server**
+    ```bash
+    cd your-project-name
+    ```
 
-   Launch the development server to see your app in action:
+4. **Create and Publish an App**
 
-   ```bash
-   jaid dev
-   ```
-6. **Visit Your Application**
+    Jaid not only allows you to create apps for personal and commercial use but also enables you to contribute to the Jaidee ecosystem by publishing your applications:
 
-   Open your web browser and navigate to the website indicated in your terminal, typically `http://localhost:3000`.
+    ```bash
+    jaid new-app <app-name>
+    ```
+
+    Follow the prompts to set up your app, then use the `jaid publish` command to share your app with the Jaidee community.
+
+## 🔌 Jaid Ecosystem
+
+Developing with Jaid means you're part of a larger ecosystem. The Jaidee framework encourages sharing, collaboration, and the use of community-driven applications. When you're ready, publish your application to the Jaidee ecosystem to be used by others, enhancing the collective capabilities of developers worldwide.
 
 ## 🌟 Features
 
-- **Fast Builds**: Utilizes esbuild for super-fast compilation and bundling.
-- **TypeScript Support**: Full support for TypeScript out of the box.
-- **Server-Side Rendering (SSR)**: Enhance SEO and improve load times with SSR.
-- **File-Based Routing**: Easy to manage routes with file-based routing.
-
-## 🔧 Commands
-
-- `jaid mkproj`: Creates a new project.
-- `jaid setup`: Links project dependencies to Jaid.
-- `jaid new-app <app-name>`: Generates a new app within a project.
-- `jaid dev`: Starts the development server.
-
-## 📚 Documentation
-
-For more detailed information on using Jaid and its features, visit [our documentation](#).
+- **Fast Setup**: Get up and running with React, SSR, and multi-tenant architectures quickly.
+- **Ecosystem Integration**: Seamlessly create and publish apps within the Jaidee framework.
+- **Community-Driven**: Join a growing community, contributing to a diverse ecosystem of applications.
 
 ## 🤝 Contributing
 
-We welcome contributions to Jaid! If you're interested in helping improve the project, check out our [contributing guidelines](#) to get started.
+Contributions are what make the Jaidee ecosystem thrive. We welcome any contributions you would like to make. Please refer to the contributing guide for more information.
 
 ## 📝 License
 
