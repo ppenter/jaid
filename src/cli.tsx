@@ -73,7 +73,8 @@ program
 
     const watcher = chokidar.watch("src").on("change", async (path, stats) => {
       try {
-        server?.close();
+        await server?.close();
+        await server.closeAllConnections();
         await createBuild({
           _pages: [path],
           rebuild: true,
@@ -172,6 +173,9 @@ export default function Page() {
 
   // create first mod name the same as the app
   await fs.mkdir(`${appDir}/mods/${appName}`);
+
+  // init git
+  await execSync(`git init`, {cwd: appDir});
   
   spinner.stop();
   logger.success(`Successfully created app ${appName}`);
@@ -209,6 +213,20 @@ program
     version: "0.0.1",
     apps: []
   }, null, 2));
+
+  // write tailwind.config.js
+  await writeToFile(`${projectDir}/tailwind.config.js`, `
+  /** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./src/**/*.{html,js,tsx,ts}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+
+  `
+  );
 
   await fs.mkdir(`${projectDir}/src`);
   await fs.mkdir(`${projectDir}/src/apps`);

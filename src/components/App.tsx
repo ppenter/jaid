@@ -14,11 +14,11 @@ export const Html = ({
     <html>
       <head>
         <title>Jaid</title>
+        <link rel="stylesheet" href="/dist/tailwind.css" />
       </head>
       <body>
         <div className="p-0" id="root">{children}</div>
       </body>
-      <script src="/jss/twind.js"></script>
     </html>
   );
 };

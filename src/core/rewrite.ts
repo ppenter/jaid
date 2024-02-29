@@ -1,3 +1,4 @@
+import { PRESERVE_REWRITES } from "../constant";
 import logger from "../lib/logger";
 import { getAppConfig } from "../utils/fs";
 
@@ -87,8 +88,23 @@ export const getAllRewrites = async (apps: string[]) => {
   return rewrites.flat(Infinity);
 };
 
-export const rewritePath = (path: string, rewrites: any[]) => {
+export const reverseRewrite = (path: string, rewrites: any[]) => {
   for (const rewrite of rewrites) {
+    const { match, params } = matchPath(path, rewrite.to);
+    if (match) {
+      return constructNewPath(params, rewrite.from);
+    }
+  }
+  return path;
+
+}
+
+export const rewritePath = (path: string, rewrites: any[]) => {
+  const _rewrites = [
+    ...PRESERVE_REWRITES,
+    ...rewrites,
+  ]
+  for (const rewrite of _rewrites) {
     const { match, params } = matchPath(path, rewrite.from);
     if (match) {
       return constructNewPath(params, rewrite.to);

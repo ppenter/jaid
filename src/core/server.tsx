@@ -19,8 +19,7 @@ app.use(nocache());
 
 export const createServer = async (_pages?: any) => {
   const _apps = await getApps();
-  app.use("/js", express.static(`.jaid`));
-  app.use("/jss", express.static(`${__dirname}/../../../jss`));
+  app.use("/dist", express.static(`.jaid`));
 
   // middleware
   app.use(async (req, res, next) => {
@@ -62,7 +61,7 @@ export const createServer = async (_pages?: any) => {
       logger.info(`Serving [CSR] ${page.path}`);
     }
 
-    const entryPoint = props ? undefined : ["/js/client.js"];
+    const entryPoint = props ? undefined : ["/dist/client.js"];
 
     const { pipe, abort: _abort } = ReactDOMServer.renderToPipeableStream(
       <StaticRouter location={req.url}>

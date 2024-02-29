@@ -6,7 +6,7 @@ import logger from "../lib/logger";
 import { exec } from "child_process";
 import glob from "../lib/global";
 import { compile } from "../lib/complier";
-import { getAllRewrites, rewritePath } from "./rewrite";
+import { getAllRewrites, reverseRewrite, rewritePath } from "./rewrite";
 
 export const filePathToImportName = (filePath: string) => {
   // replace / with _ and remove .tsx replace : with empty
@@ -146,11 +146,12 @@ export const createBuild = async (options?: {
 
   const pageIndex = onlyPages.reduce((acc, page, index) => {
     const path = page.replace("src/apps", "").replace("/page.tsx", "");
-    const rewrite_path = rewritePath(path, rewrites);
+    const rewrite_path = reverseRewrite(path, rewrites);
     return {
       ...acc,
       [page]: {
         path: path,
+        rewritePath: rewrite_path,
         index: `PAGE_${index}`,
       },
     };
@@ -181,12 +182,14 @@ export const createBuild = async (options?: {
     import React from 'react';
     import { hydrateRoot } from 'react-dom/client';
     import { BrowserRouter, Routes, Route } from 'react-router-dom';
+    
     ${Object.keys(pageIndex)
       .map((page) => {
         const index = pageIndex[page].index;
         return `import ${index} from '../${page.replace(".tsx", "")}'`;
       })
       .join("\n")}
+
 
     const container = document.getElementById('root') as any;
     const root = hydrateRoot(container, 
@@ -197,7 +200,8 @@ export const createBuild = async (options?: {
           .map((page: string) => {
             const index = pageIndex[page].index;
             const path = pageIndex[page].path;
-            return `<Route path="${path}" Component={${index}} />`;
+            const rewritePath = pageIndex[page].rewritePath;
+            return `<Route path="${rewritePath}" Component={${index}} />`;
           })
           .join("\n")}
         </Routes>
@@ -239,6 +243,11 @@ export const createBuild = async (options?: {
 
 //   delete client.tsx
     await fs.rm(`./.jaid/client.tsx`);
+
+    // build tailwind
+    await exec(`npx tailwindcss build -i ${__dirname}/../../../src/index.css -o ./.jaid/tailwind.css`, {
+        cwd: process.cwd(),
+    });
 
   return p;
 };

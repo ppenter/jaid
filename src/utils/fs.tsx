@@ -79,7 +79,7 @@ export const getPage = async (path: string) => {
 
     await fs.stat(page_path);
     const page = await import(page_path);
-    const js = `/js/${_page_path.replace(".tsx", ".js").split("src/").pop()}`;
+    const js = `/dist/${_page_path.replace(".tsx", ".js").split("src/").pop()}`;
 
     return {
       page: page.default,
