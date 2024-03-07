@@ -5,8 +5,8 @@ export const BUILD_CONSTANT = {
 };
 
 export const PRESERVE_REWRITES = [
-  {
-    from: "/api/:app/:path*",
-    to: "/:app/api/:path*",
-  }
-]
+  // {
+  //   from: "/api/:app/:path*",
+  //   to: "/:app/api/:path*",
+  // }
+];

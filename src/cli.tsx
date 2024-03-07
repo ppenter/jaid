@@ -1,16 +1,16 @@
 #! /usr/bin/env node
 
 import { Command } from "commander";
-import child, { spawn, execSync } from "child_process";
-import {promises as fs} from "fs";
+import child, { spawn, execSync, exec as execute } from "child_process";
+import { promises as fs } from "fs";
 import chokidar from "chokidar";
 import util from "util";
-import tsConfigTemplate from "./templates/tsconfig.json"
+import tsConfigTemplate from "./templates/tsconfig.json";
 
 const exec = util.promisify(child.exec);
 
 const program = new Command();
-import { version } from "../package.json"
+import { version } from "../package.json";
 import { createServer } from "./core/server";
 import { createBuild } from "./core/build";
 import logger from "./lib/logger";
@@ -19,17 +19,22 @@ import path from "path";
 import { writeToFile } from "./utils/fs";
 import prompt from "prompts";
 
+import {createServer as viteServer} from "vite"
+
 const linkList = [
   "react",
   "react-dom",
   "react-router-dom",
+  "react-router",
   "@types/react",
   "@types/react-dom",
   "@types/react-router-dom",
+  "ts-loader",
+  "react-server-dom-webpack",
 ];
 
 // check has jaid.config.json file
-const bypassCommands = ["mkproj"]
+const bypassCommands = ["mkproj"];
 
 // check command is not bypassed
 const checkBypass = async () => {
@@ -41,7 +46,7 @@ const checkBypass = async () => {
       process.exit(1);
     }
   }
-}
+};
 
 checkBypass();
 
@@ -50,40 +55,64 @@ program.name("Jaid CLI").version(version).description("Jaid CLI");
 program
   .command("start")
   .description("Start the server")
-  .action(() => {
-    createServer();
+  .action(async () => {
+    await createBuild();
+
+    // logger.clear();
+    let server = await createServer();
+    logger.log("Server started on http://localhost:3000");
   });
 
 program
   .command("build")
   .description("Build the project")
-  .action(() => {
-    createBuild();
+  .action(async () => {
+    await createBuild();
   });
 
 program
   .command("dev")
   .description("Start the server and watch for changes")
   .action(async () => {
-    await createBuild();
+    // execute start-server.js with nodemon and watch all files in the src directory
+    // const startServer = spawn("nodemon", [`${__dirname}/start-server.js`, "--watch", `src`, "--watch", `${__dirname}/../`, "--ext", "ts,tsx"], {
+    //   stdio: "inherit",
+    // });
 
-    logger.clear();
-    let server = await createServer();
-    logger.log("Server started on http://localhost:3000");
-
-    const watcher = chokidar.watch("src").on("change", async (path, stats) => {
-      try {
-        await server?.close();
-        await server.closeAllConnections();
-        await createBuild({
-          _pages: [path],
-          rebuild: true,
-        });
-        server = await createServer();
-      } catch (e: any) {
-        logger.error(`Error: ${e.message}`);
-      }
+    let app = spawn("jaid", ["start"], {
+      stdio: "inherit",
     });
+
+    chokidar
+      .watch(["src", `${__dirname}/../../src`])
+      .on("change", async (path, stats) => {
+        // logger.clear();
+        logger.log("Rebuilding");
+        app.kill();
+        app = spawn("jaid", ["start"], {
+          stdio: "inherit",
+        });
+      });
+    // await createBuild();
+
+    // logger.clear();
+    // let server = await createServer();
+    // logger.log("Server started on http://localhost:3000");
+
+    // const watcher = chokidar.watch("src").on("change", async (path, stats) => {
+    //   try {
+    //     await createBuild({
+    //       _pages: [path],
+    //       rebuild: true,
+    //     }).then(async() => {
+    //       logger.log("Rebuilt");
+    //       server.close();
+    //       server = await createServer();
+    //     })
+    //   } catch (e: any) {
+    //     logger.error(`Error: ${e.message}`);
+    //   }
+    // });
   });
 
 program
@@ -120,31 +149,33 @@ program
   });
 
 program
-.command("new-app")
-.description("Create a new app")
-.argument("<app-name>", "Name of the app")
-.action(async (appName) => {
-  const appDir = path.resolve(process.cwd(), "src/apps", appName);
-  const hasDir = await fs.stat(appDir).catch(() => null);
-  if (hasDir) {
-    const {override} = await prompt({
-      type: "confirm",
-      name: "override",
-      message: "App already exists. Do you want to override it?",
-    })
-    if (!override) {
-      logger.error("Aborted");
-      return;
-    }else{
-      logger.warn("Overriding app");
-      await fs.rm(appDir, { recursive: true });
-      await delay(1000);
+  .command("new-app")
+  .description("Create a new app")
+  .argument("<app-name>", "Name of the app")
+  .action(async (appName) => {
+    const appDir = path.resolve(process.cwd(), "src/apps", appName);
+    const hasDir = await fs.stat(appDir).catch(() => null);
+    if (hasDir) {
+      const { override } = await prompt({
+        type: "confirm",
+        name: "override",
+        message: "App already exists. Do you want to override it?",
+      });
+      if (!override) {
+        logger.error("Aborted");
+        return;
+      } else {
+        logger.warn("Overriding app");
+        await fs.rm(appDir, { recursive: true });
+        await delay(1000);
+      }
     }
-  }
 
-  const spinner = logger.spinner('Creating app').start();
-  await delay(1000);
-  await writeToFile(`${appDir}/pages/landing/page.tsx`, `
+    const spinner = logger.spinner("Creating app").start();
+    await delay(1000);
+    await writeToFile(
+      `${appDir}/pages/landing/page.tsx`,
+      `
 import React from "react";
 
 export default function Page() {
@@ -156,66 +187,77 @@ export default function Page() {
   </p>
 </div>;
 }
-  `)
+  `,
+    );
 
-  const appJson = {
-    name: appName,
-    version: "0.0.1",
-  }
+    const appJson = {
+      name: appName,
+      version: "0.0.1",
+    };
 
-  await writeToFile(`${appDir}/app.json`, JSON.stringify(appJson, null, 2));
+    await writeToFile(`${appDir}/app.json`, JSON.stringify(appJson, null, 2));
 
-  // create api folder
-  await fs.mkdir(`${appDir}/api`);
+    // create api folder
+    await fs.mkdir(`${appDir}/api`);
 
-  // create mods folder
-  await fs.mkdir(`${appDir}/mods`);
+    // create mods folder
+    await fs.mkdir(`${appDir}/mods`);
 
-  // create first mod name the same as the app
-  await fs.mkdir(`${appDir}/mods/${appName}`);
+    // create first mod name the same as the app
+    await fs.mkdir(`${appDir}/mods/${appName}`);
 
-  // init git
-  await execSync(`git init`, {cwd: appDir});
-  
-  spinner.stop();
-  logger.success(`Successfully created app ${appName}`);
-  logger.info(`Run 'jaid dev' to start the server and try to visit http://localhost:3000/${appName}/pages/landing`);
-});
+    // init git
+    await execSync(`git init`, { cwd: appDir });
+
+    spinner.stop();
+    logger.success(`Successfully created app ${appName}`);
+    logger.info(
+      `Run 'jaid dev' to start the server and try to visit http://localhost:3000/${appName}/pages/landing`,
+    );
+  });
 
 program
-.command("mkproj")
-.description("Create a new project")
-.argument("<project-name>", "Name of the project")
-.action(async (projName) => {
-
-  // check the folder exist
-  const projectDir = path.resolve(`${process.cwd()}/${projName}`);
-  const hasDir = await fs.stat(projectDir).catch(() => null);
-  if (hasDir) {
-    const {override} = await prompt({
-      type: "confirm",
-      name: "override",
-      message: "Project already exists. Do you want to override it?",
-    })
-    if (!override) {
-      logger.error("Aborted");
-      return;
-    }else{
-      logger.warn("Overriding project");
-      await fs.rm(projectDir, { recursive: true });
-      await delay(1000);
+  .command("mkproj")
+  .description("Create a new project")
+  .argument("<project-name>", "Name of the project")
+  .action(async (projName) => {
+    // check the folder exist
+    const projectDir = path.resolve(`${process.cwd()}/${projName}`);
+    const hasDir = await fs.stat(projectDir).catch(() => null);
+    if (hasDir) {
+      const { override } = await prompt({
+        type: "confirm",
+        name: "override",
+        message: "Project already exists. Do you want to override it?",
+      });
+      if (!override) {
+        logger.error("Aborted");
+        return;
+      } else {
+        logger.warn("Overriding project");
+        await fs.rm(projectDir, { recursive: true });
+        await delay(1000);
+      }
     }
-  }
 
-  const spinner = logger.spinner('Creating project').start();
-  await delay(1000);
-  await writeToFile(`${projectDir}/jaid.config.json`, JSON.stringify({
-    version: "0.0.1",
-    apps: []
-  }, null, 2));
+    const spinner = logger.spinner("Creating project").start();
+    await delay(1000);
+    await writeToFile(
+      `${projectDir}/jaid.config.json`,
+      JSON.stringify(
+        {
+          version: "0.0.1",
+          apps: [],
+        },
+        null,
+        2,
+      ),
+    );
 
-  // write tailwind.config.js
-  await writeToFile(`${projectDir}/tailwind.config.js`, `
+    // write tailwind.config.js
+    await writeToFile(
+      `${projectDir}/tailwind.config.js`,
+      `
   /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./src/**/*.{html,js,tsx,ts}"],
@@ -225,24 +267,69 @@ module.exports = {
   plugins: [],
 }
 
-  `
-  );
+  `,
+    );
 
-  await fs.mkdir(`${projectDir}/src`);
-  await fs.mkdir(`${projectDir}/src/apps`);
-  await fs.mkdir(`${projectDir}/src/sites`);
+    await fs.mkdir(`${projectDir}/src`);
+    await fs.mkdir(`${projectDir}/src/apps`);
+    await fs.mkdir(`${projectDir}/src/sites`);
 
-  await writeToFile(`${projectDir}/tsconfig.json`, JSON.stringify(tsConfigTemplate, null, 2));
+    await writeToFile(
+      `${projectDir}/tsconfig.json`,
+      JSON.stringify(tsConfigTemplate, null, 2),
+    );
 
-  spinner.stop();
-  logger.success(`Successfully created project ${projName}`);
+    spinner.stop();
+    logger.success(`Successfully created project ${projName}`);
 
-  logger.info(`Run 'cd ${projName}' to enter the project directory`);
-  // Example command usages
-  logger.log(`Run 'jaid new-app <app-name>' to create a new app`);
-  logger.log(`Run 'jaid dev' to start the server`);
-  logger.log(`Run 'jaid build' to build the project`);
+    logger.info(`Run 'cd ${projName}' to enter the project directory`);
+    // Example command usages
+    logger.log(`Run 'jaid new-app <app-name>' to create a new app`);
+    logger.log(`Run 'jaid dev' to start the server`);
+    logger.log(`Run 'jaid build' to build the project`);
+  });
 
-});
+// get app
+program
+  .command("get-app")
+  .description("Get app from the repository")
+  .argument("<app-name>", "Name of the app")
+  .action(async (appName) => {
+    const appDir = path.resolve(process.cwd(), "src/apps", appName);
+    const hasDir = await fs.stat(appDir).catch(() => null);
+    if (hasDir) {
+      const { override } = await prompt({
+        type: "confirm",
+        name: "override",
+        message: "App already exists. Do you want to override it?",
+      });
+      if (!override) {
+        logger.error("Aborted");
+        return;
+      } else {
+        logger.warn("Overriding app");
+        await fs.rm(appDir, { recursive: true });
+        await delay(1000);
+      }
+    }
+
+    const spinner = logger.spinner("Getting an app").start();
+    await delay(1000);
+
+    const jaidConfigPath = path.resolve(process.cwd(), "jaid.config.json");
+    const jaidConfig = JSON.parse(await fs.readFile(jaidConfigPath, "utf-8"));
+
+    // clone from the repository
+    await execSync(
+      `git clone ${jaidConfig.repository || "https://github.com/ppenter"}/${appName}`,
+      { cwd: path.resolve(process.cwd(), "src/apps") },
+    );
+
+    spinner.stop();
+    logger.success(`Got app ${appName} !`);
+    logger.info(
+      `Run 'jaid dev' to start the server and try to visit http://localhost:3000/${appName}/pages/landing`,
+    );
+  });
 
 program.parse(process.argv);

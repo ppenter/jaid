@@ -4,12 +4,7 @@ export const App = () => {
   return <div>Hello World</div>;
 };
 
-export const Html = ({
-  children,
-}: {
-  children: any;
-  jsPath?: string;
-}) => {
+export const Html = ({ children }: { children: any; jsPath?: string }) => {
   return (
     <html>
       <head>
@@ -17,7 +12,9 @@ export const Html = ({
         <link rel="stylesheet" href="/dist/tailwind.css" />
       </head>
       <body>
-        <div className="p-0" id="root">{children}</div>
+        <div className="p-0" id="root">
+          {children}
+        </div>
       </body>
     </html>
   );

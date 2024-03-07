@@ -34,11 +34,11 @@ export const getPages = async (
         return await getPages(filePath, options);
       } else {
         if (options.exts.includes(path.extname(file))) {
-          const chpath = `${BUILD_CONSTANT.appsDir}/:app/${BUILD_CONSTANT.pagesFolderName}/:path*`;
-          const {match} = matchPath(removeExtension(filePath), chpath);
-          if(match){
+          const chpath = `${BUILD_CONSTANT.appsDir}/:app/:path*`;
+          const { match } = matchPath(removeExtension(filePath), chpath);
+          if (match) {
             return filePath;
-          }else{
+          } else {
             return undefined;
           }
         }
@@ -59,13 +59,13 @@ export const getPage = async (path: string) => {
     const _page_path = Object.keys(storage_pages).find((page) => {
       const json = storage_pages[page];
       // json.path, json.index
-      const match = matchPath(path, json.path);
-      if (match.match) {
-        page_params = match.params;
-        return true;
+      const {match, params} = matchPath(path, json.path);
+      if (match) {
+        page_params = params;
       }
-      return false;
-    });
+      return match;
+    }
+    );
 
     if (!_page_path) {
       throw new Error("Page not found");
@@ -76,9 +76,10 @@ export const getPage = async (path: string) => {
 
     // const page_path = `${process.cwd()}/${BUILD_CONSTANT.appsDir}${path}.tsx`;
     const page_path = `${process.cwd()}/.jaid/cjs/${removeExtension(_page_path.split("src/").pop() || "")}.js`;
-
     await fs.stat(page_path);
+
     const page = await import(page_path);
+
     const js = `/dist/${_page_path.replace(".tsx", ".js").split("src/").pop()}`;
 
     return {
@@ -86,9 +87,10 @@ export const getPage = async (path: string) => {
       js: js,
       path: _page_path,
       params: page_params,
+      ssp: page?.getServerSideProps,
     };
   } catch (e) {
-    logger.error(`404: ${path}`);
+    logger.error(`404: ${path} ${e}`);
     return {
       page: null,
       js: "",
@@ -96,11 +98,16 @@ export const getPage = async (path: string) => {
   }
 };
 
+
 export const getAppConfig = async (app: string) => {
   try {
-    const config = await fs.readFile(`src/apps/${app}/app.json`, "utf-8");
-    return JSON.parse(config);
+    // const appConfigPath = `src/apps/${app}/app.ts`
+    const appConfigPath = `${process.cwd()}/src/apps/${app}/app.js`;
+    await fs.stat(appConfigPath);
+    const appJS = await import(appConfigPath);
+    return appJS?.config || {}
   } catch (e) {
+    logger.error(`404: ${app} ${e}`);
     return {};
   }
 };

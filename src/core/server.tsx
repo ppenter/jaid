@@ -44,54 +44,79 @@ export const createServer = async (_pages?: any) => {
     return next();
   });
 
-  app.get("*", async (req, res) => {
-    try{
-      const page = await getPage(req.url.split("?")[0]);
-      
+  app.use("/api/:app/:path(*)", async (req, res) => {
+    try {
+      const { app, path } = req.params;
 
-    const ServerSideComponent = page.page;
-
-    const props = page?.page?.getServerSideProps
-      ? await page?.page?.getServerSideProps()
-      : undefined;
-
-    if (props) {
-      logger.info(`Serving [SSR] ${page.path}`);
-    } else {
-      logger.info(`Serving [CSR] ${page.path}`);
+      const reqMethod = req.method.toLowerCase();
+      const apiPath = `${process.cwd()}/.jaid/cjs/apps/${app}/api/${path}.js`;
+      const api = await import(apiPath);
+      const handler = api[reqMethod.toUpperCase()];
+      const data = await handler(req, res);
+      res.status(200).send(data);
+    } catch (e: any) {
+      logger.error(e);
+      res.status(500).send(e.message);
     }
+  });
 
-    const entryPoint = props ? undefined : ["/dist/client.js"];
+  app.get("*", async (req, res) => {
+    try {
+      const page = await getPage(req.url.split("?")[0]);
 
-    const { pipe, abort: _abort } = ReactDOMServer.renderToPipeableStream(
-      <StaticRouter location={req.url}>
-       <Html>
-       {ServerSideComponent ? <ServerSideComponent {...props} /> : 
-              <ErrorPage/>
-              }
-       </Html>
-      </StaticRouter>,
-      {
-        bootstrapScripts: entryPoint,
-        onShellReady() {
-          res.statusCode = 200;
-          res.setHeader("Content-type", "text/html");
-          pipe(res);
+      const query = req.query;
+
+      const ServerSideComponent = page.page;
+
+      const props = page?.ssp ? await page?.ssp() : undefined;
+
+      if (props) {
+        logger.info(`Serving [SSR] ${page.path}`);
+      } else {
+        logger.info(`Serving [CSR] ${page.path}`);
+      }
+
+      const entryPoint = props ? ["/dist/client.js"] : ["/dist/client.js"];
+
+      const { pipe, abort: _abort } = ReactDOMServer.renderToPipeableStream(
+        <StaticRouter location={req.url}>
+          <Html>
+            {ServerSideComponent ? (
+              <ServerSideComponent {...props} {...query} />
+            ) : (
+              <ErrorPage />
+            )}
+          </Html>
+        </StaticRouter>,
+        {
+          bootstrapScripts: entryPoint,
+          onShellReady() {
+            res.statusCode = 200;
+            res.setHeader("Content-type", "text/html");
+            pipe(res);
+          },
+          onShellError() {
+            res.statusCode = 500;
+            res.send(
+              ReactDOMServer.renderToString(
+                <Html>
+                  <ErrorPage code={500} message={"Something went wrong"} />
+                </Html>,
+              ),
+            );
+          },
         },
-        onShellError() {
-          res.statusCode = 500;
-          res.send(ReactDOMServer.renderToString(<Html>
-            <ErrorPage code={500} message={'Something went wrong'} />
-          </Html>));
-        },
-      },
-    );
-    }catch(e: any){
+      );
+    } catch (e: any) {
       logger.error(e);
       res.statusCode = 500;
-      res.send(ReactDOMServer.renderToString(<Html>
-        <ErrorPage code={500} message={'Something went wrong'} />
-      </Html>));
+      res.send(
+        ReactDOMServer.renderToString(
+          <Html>
+            <ErrorPage code={500} message={"Something went wrong"} />
+          </Html>,
+        ),
+      );
     }
   });
   const server = app.listen(3000, () => {});

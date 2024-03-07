@@ -3,10 +3,13 @@ import { getApps, getPages, writeToFile } from "../utils/fs";
 import { promises as fs } from "fs";
 import storage from "../lib/storage";
 import logger from "../lib/logger";
-import { exec } from "child_process";
+import child from "child_process";
+import util from "util";
 import glob from "../lib/global";
 import { compile } from "../lib/complier";
 import { getAllRewrites, reverseRewrite, rewritePath } from "./rewrite";
+
+const exec = util.promisify(child.exec);
 
 export const filePathToImportName = (filePath: string) => {
   // replace / with _ and remove .tsx replace : with empty
@@ -111,7 +114,7 @@ export const createBuild = async (options?: {
   type?: "update" | "delete" | "create";
 }) => {
   const { rebuild, _pages } = options || {};
-  !rebuild && logger.log("Retriving Pages");
+  // !rebuild && logger.log("Retriving Pages");
   
     // if not rebuild delete .jaid folder
     if (!rebuild) {
@@ -130,7 +133,7 @@ export const createBuild = async (options?: {
       await Promise.all(
         apps.map(async (app) => {
           const _allTsx = await getPages(`src/apps/${app}`, {
-            exts: [".tsx"],
+            exts: [".tsx", ".ts"],
           });
           return _allTsx.flat(Infinity) as string[];
         }),
@@ -145,7 +148,9 @@ export const createBuild = async (options?: {
   const rewrites = await getAllRewrites(_apps);
 
   const pageIndex = onlyPages.reduce((acc, page, index) => {
+    // if page contains [...slug] then replace it with *
     const path = page.replace("src/apps", "").replace("/page.tsx", "");
+    // const path = page.replace("src/apps", "").replace("/page.tsx", "");
     const rewrite_path = reverseRewrite(path, rewrites);
     return {
       ...acc,
@@ -190,23 +195,31 @@ export const createBuild = async (options?: {
       })
       .join("\n")}
 
-
-    const container = document.getElementById('root') as any;
-    const root = hydrateRoot(container, 
+    const Root = () => {
+      return(
         <React.StrictMode>
         <BrowserRouter>
         <Routes>
         ${Object.keys(pageIndex)
           .map((page: string) => {
             const index = pageIndex[page].index;
-            const path = pageIndex[page].path;
-            const rewritePath = pageIndex[page].rewritePath;
+            const path = pageIndex[page].path
+            const rewritePath = pageIndex[page].rewritePath
+            .replace(/\[\.\.\.(.*)\]/, "*")
+            .replace(/\[(.*)\]/, ":$1");
             return `<Route path="${rewritePath}" Component={${index}} />`;
           })
           .join("\n")}
         </Routes>
         </BrowserRouter>  
         </React.StrictMode>
+      )
+    }
+
+
+    const container = document.getElementById('root') as any;
+    const root = hydrateRoot(container, 
+        <Root/>
     );
     `;
 
@@ -230,19 +243,19 @@ export const createBuild = async (options?: {
         const result = compile(source, tsConfig.complierOptions);
 
         await writeToFile(
-          `${process.cwd()}/.jaid/cjs/${page.replace("src/", "").replace(".tsx", ".js")}`,
+          `${process.cwd()}/.jaid/cjs/${page.replace("src/", "").replace(".tsx", ".js").replace(".ts", ".js")}`,
           result,
         );
 
-        logger.debug(
-          `${rebuild ? "Rebuilt".padEnd(8) : "Built".padEnd(8)}| ${page}`,
-        );
+        // logger.debug(
+        //   `${rebuild ? "Rebuilt".padEnd(8) : "Built".padEnd(8)}| ${page}`,
+        // );
       });
     }),
   );
 
 //   delete client.tsx
-    await fs.rm(`./.jaid/client.tsx`);
+    // await fs.rm(`./.jaid/client.tsx`);
 
     // build tailwind
     await exec(`npx tailwindcss build -i ${__dirname}/../../../src/index.css -o ./.jaid/tailwind.css`, {

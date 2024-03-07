@@ -3,65 +3,34 @@ import logger from "../lib/logger";
 import { getAppConfig } from "../utils/fs";
 
 export function matchPath(path: string, pathRegex: string) {
-  // Extract named parameters and wildcards, replace them with regex groups
-  const paramNames: any[] = [];
   let regexPattern = pathRegex
-    .split("/")
-    .map((segment: string) => {
-      if (segment.startsWith(":")) {
-        if (segment.endsWith("*")) {
-          paramNames.push(segment.slice(1, -1)); // Remove ":" and "*" from the paramName
-          return "(.*)"; // Match any characters including slashes
-        } else {
-          paramNames.push(segment.slice(1)); // Remove ":" from the paramName
-          return "([^\\/]+)"; // Match any characters except slashes
+        .replace(/\/\[\.\.\.(\w+)\]/g, '/(?<$1>.+)') // Replace [...param] with a named capturing group that matches everything
+        .replace(/\/:(\w+)\*/g, '/(?<$1>.+)') // Replace :param* with a named capturing group that matches everything
+        .replace(/\[\.\.\.(\w+)\]/g, '(?<$1>[^/]+)') // Handle embedded wildcards
+        .replace(/:(\w+)/g, '(?<$1>[^/]+)') // Replace :param with a named capturing group that matches until the next slash
+        .replace(/\[(\w+)\]/g, '(?<$1>[^/]+)') // Replace [param] with a named capturing group that matches until the next slash
+        .replace(/\//g, '\\/'); // Escape forward slashes
+
+    // Add start and end line anchors
+    const regex = new RegExp(`^${regexPattern}$`);
+    
+    const match = path.match(regex);
+    if (match) {
+        let params = {} as any
+        // Extract the named capturing groups as params
+        for (let [key, value] of Object.entries(match.groups || {})) {
+            params[key] = value;
         }
-      } else {
-        return segment; // Static segment, include as-is
-      }
-    })
-    .join("\\/"); // Rejoin segments with escaped slashes
+        return { match: true, params };
+    } else {
+        return { match: false, params: {} };
+    }
 
-  regexPattern = `^${regexPattern}$`;
-  const regex = new RegExp(regexPattern);
-
-  // Test the path against the generated regex
-  const match = path.match(regex);
-  if (match) {
-    // Extract captured parameter values
-    const params = paramNames.reduce((acc, paramName, index) => {
-      acc[paramName] = match[index + 1]; // match[0] is the full match, parameters start from index 1
-      return acc;
-    }, {});
-
-    return { match: true, params };
-  }
-
-  return { match: false, params: {} };
 }
 
 export function extractParamsFromPath(path: string, pattern: string) {
-  const regexParts = pattern
-    .split("/")
-    .map((segment: string) => {
-      if (segment.startsWith(":")) {
-        if (segment.endsWith("*")) {
-          return "(.*)"; // Match any characters including slashes for wildcards
-        }
-        return "([^\\/]+)"; // Match any characters except slashes for named parameters
-      }
-      return segment.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, "\\$&"); // Escape regex special characters
-    })
-    .join("\\/");
-  const regex = new RegExp(`^${regexParts}$`);
-  const match = path.match(regex);
-
-  if (!match) {
-    return null; // No match found
-  }
-
-  // Return captured values for named parameters and wildcards
-  return match.slice(1);
+  const {params} = matchPath(path, pattern);
+  return params || null
 }
 
 export function constructNewPath(
@@ -96,14 +65,10 @@ export const reverseRewrite = (path: string, rewrites: any[]) => {
     }
   }
   return path;
-
-}
+};
 
 export const rewritePath = (path: string, rewrites: any[]) => {
-  const _rewrites = [
-    ...PRESERVE_REWRITES,
-    ...rewrites,
-  ]
+  const _rewrites = [...PRESERVE_REWRITES, ...rewrites];
   for (const rewrite of _rewrites) {
     const { match, params } = matchPath(path, rewrite.from);
     if (match) {

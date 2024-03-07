@@ -1,4 +1,3 @@
-import { createServer } from "./core/server";
-import { createBuild } from "./core/build";
+import { getApps, getAppConfig } from "./utils/fs";
 
-export { createServer, createBuild };
+export { getApps, getAppConfig };

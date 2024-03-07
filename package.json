@@ -1,6 +1,7 @@
 {
   "name": "jaid",
   "version": "0.0.3",
+  "main": "dist/src/index.js",
   "description": "A powerful CLI for SSR with React and TypeScript, leveraging esbuild for fast builds and file-based routing.",
   "keywords": [
     "cli",
@@ -46,7 +47,8 @@
     "react-dom": "^18.2.0",
     "tailwindcss": "^3.4.1",
     "tslog": "^4.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vite": "^5.1.5"
   },
   "devDependencies": {
     "@types/prompt": "^1.1.8",
@@ -54,10 +56,14 @@
     "@types/react": "^18.2.58",
     "@types/react-dom": "^18.2.19",
     "autoprefixer": "^10.4.17",
+    "cookie-parser": "^1.4.6",
     "esbuild-plugin-tsc": "^0.4.0",
     "mkdirp": "^3.0.1",
     "postcss": "^8.4.35",
     "prettier": "3.2.5",
-    "react-router-dom": "^6.22.1"
+    "react-router-dom": "^6.22.1",
+    "react-server-dom-webpack": "0.0.0-experimental-41b4714f1-20230328",
+    "ts-loader": "^9.5.1",
+    "webpack": "^5.90.3"
   }
 }
