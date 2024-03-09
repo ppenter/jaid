@@ -221,7 +221,6 @@ export const createBuild = async (options?: {
       ".tsx": "tsx",
       ".ts": "ts",
     },
-    sourcemap: true,
     // external: ["fs", "path"],
     external: ["fs", "path", "os", "child_process", "readline", "querystring", "crypto", "http", "https", "url", "zlib", "stream", "tty", "util", "assert", "net", "dns", "tls", "events", "buffer", "string_decoder", "punycode", "process", "v8", "vm", "async_hooks", "perf_hooks", "worker_threads", "node:events", "node:fs", "node:os", "node:child_process", "node:readline", "node:querystring", "node:crypto", "node:http", "node:https", "node:url", "node:zlib", "node:stream", "node:tty", "node:util", "node:assert", "node:net", "node:dns", "node:tls", "node:events", "node:buffer", "node:string_decoder", "node:punycode", "node:process", "node:v8", "node:vm", "node:async_hooks", "node:perf_hooks", "node:worker_threads", "ora", "esbuild"]
   });
@@ -253,7 +252,6 @@ export const createBuild = async (options?: {
       ".tsx": "tsx",
       ".ts": "ts",
     },
-    sourcemap: true,
     external: ["fs", "path", "esbuild"],
     // external: ["fs", "path", "os", "child_process", "readline", "querystring", "crypto", "http", "https", "url", "zlib", "stream", "tty", "util", "assert", "net", "dns", "tls", "events", "buffer", "string_decoder", "punycode", "process", "v8", "vm", "async_hooks", "perf_hooks", "worker_threads", "node:events", "node:fs", "node:os", "node:child_process", "node:readline", "node:querystring", "node:crypto", "node:http", "node:https", "node:url", "node:zlib", "node:stream", "node:tty", "node:util", "node:assert", "node:net", "node:dns", "node:tls", "node:events", "node:buffer", "node:string_decoder", "node:punycode", "node:process", "node:v8", "node:vm", "node:async_hooks", "node:perf_hooks", "node:worker_threads", "ora"]
   });
@@ -288,7 +286,6 @@ export const createBuild = async (options?: {
       ".tsx": "tsx",
     },
     platform: "node",
-    // sourcemap: true,
     external: ["fs", "esbuild"],
     // external: ["fs", "path", "os", "child_process", "readline", "querystring", "crypto", "http", "https", "url", "zlib", "stream", "tty", "util", "assert", "net", "dns", "tls", "events", "buffer", "string_decoder", "punycode", "process", "v8", "vm", "async_hooks", "perf_hooks", "worker_threads", "node:events", "node:fs", "node:os", "node:child_process", "node:readline", "node:querystring", "node:crypto", "node:http", "node:https", "node:url", "node:zlib", "node:stream", "node:tty", "node:util", "node:assert", "node:net", "node:dns", "node:tls", "node:events", "node:buffer", "node:string_decoder", "node:punycode", "node:process", "node:v8", "node:vm", "node:async_hooks", "node:perf_hooks", "node:worker_threads", "ora"]
   });
@@ -347,9 +344,13 @@ export const createBuild = async (options?: {
   lap("Create Pages");
 
   // remove tsx files
-  // await fs.rm(`./.jaid/App.tsx`);
-  // await fs.rm(`./.jaid/client.tsx`);
-  // await fs.rm(`./.jaid/server.tsx`);
+  await fs.rm(`./.jaid/App.tsx`);
+  await fs.rm(`./.jaid/client.tsx`);
+  await fs.rm(`./.jaid/server.tsx`);
+  // remove css files
+  await fs.rm(`./.jaid/App.css`);
+  await fs.rm(`./.jaid/client.css`);
+  await fs.rm(`./.jaid/server.css`);
 
   // lap("Remove TSX");
 
