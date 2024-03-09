@@ -59,13 +59,12 @@ export const getPage = async (path: string) => {
     const _page_path = Object.keys(storage_pages).find((page) => {
       const json = storage_pages[page];
       // json.path, json.index
-      const {match, params} = matchPath(path, json.path);
+      const { match, params } = matchPath(path, json.path);
       if (match) {
         page_params = params;
       }
       return match;
-    }
-    );
+    });
 
     if (!_page_path) {
       throw new Error("Page not found");
@@ -86,7 +85,7 @@ export const getPage = async (path: string) => {
       page: page.default,
       js: js,
       path: _page_path,
-      params: page_params,
+      params: page_params as any,
       ssp: page?.getServerSideProps,
     };
   } catch (e) {
@@ -98,14 +97,13 @@ export const getPage = async (path: string) => {
   }
 };
 
-
 export const getAppConfig = async (app: string) => {
   try {
     // const appConfigPath = `src/apps/${app}/app.ts`
     const appConfigPath = `${process.cwd()}/src/apps/${app}/app.js`;
     await fs.stat(appConfigPath);
     const appJS = await import(appConfigPath);
-    return appJS?.config || {}
+    return appJS?.config || {};
   } catch (e) {
     logger.error(`404: ${app} ${e}`);
     return {};

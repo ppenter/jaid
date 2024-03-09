@@ -8,6 +8,7 @@ import util from "util";
 import glob from "../lib/global";
 import { compile } from "../lib/complier";
 import { getAllRewrites, reverseRewrite, rewritePath } from "./rewrite";
+import pkg from "../../package.json";
 
 const exec = util.promisify(child.exec);
 
@@ -115,15 +116,15 @@ export const createBuild = async (options?: {
 }) => {
   const { rebuild, _pages } = options || {};
   // !rebuild && logger.log("Retriving Pages");
-  
-    // if not rebuild delete .jaid folder
-    if (!rebuild) {
-        await fs.rm('.jaid', { recursive: true });
-        // create .jaid folder
-        await fs.mkdir('.jaid');
-        // init storage
-        storage.put('pages', {});
-    }
+
+  // if not rebuild delete .jaid folder
+  if (!rebuild) {
+    await fs.rm(".jaid", { recursive: true });
+    // create .jaid folder
+    await fs.mkdir(".jaid");
+    // init storage
+    storage.put("pages", {});
+  }
 
   const apps = await getApps();
 
@@ -183,48 +184,59 @@ export const createBuild = async (options?: {
 
   const tsConfig = JSON.parse(await fs.readFile("tsconfig.json", "utf8"));
 
-  const clientJs = `
+  const appTsx = `
     import React from 'react';
-    import { hydrateRoot } from 'react-dom/client';
-    import { BrowserRouter, Routes, Route } from 'react-router-dom';
+    import {Routes, Route} from 'react-router';
     
     ${Object.keys(pageIndex)
       .map((page) => {
         const index = pageIndex[page].index;
-        return `import ${index} from '../${page.replace(".tsx", "")}'`;
+        return `import ${index} from '${process.cwd()}/${page.replace(".tsx", "")}'`;
       })
       .join("\n")}
 
-    const Root = () => {
+    const App = (props: any) => {
       return(
-        <React.StrictMode>
-        <BrowserRouter>
         <Routes>
         ${Object.keys(pageIndex)
           .map((page: string) => {
             const index = pageIndex[page].index;
-            const path = pageIndex[page].path
+            const path = pageIndex[page].path;
             const rewritePath = pageIndex[page].rewritePath
-            .replace(/\[\.\.\.(.*)\]/, "*")
-            .replace(/\[(.*)\]/, ":$1");
-            return `<Route path="${rewritePath}" Component={${index}} />`;
+              .replace(/\[\.\.\.(.*)\]/, "*")
+              .replace(/\[(.*)\]/, ":$1");
+            return `<Route path="${rewritePath}"  element={<${index} {...props}/>} />`;
           })
           .join("\n")}
         </Routes>
-        </BrowserRouter>  
-        </React.StrictMode>
       )
     }
 
+    export default App;
+    `;
+
+  await writeToFile(`./.jaid/App.tsx`, appTsx);
+
+  const appResult = compile(appTsx, tsConfig.complierOptions);
+
+  await writeToFile(`./.jaid/App.js`, appResult);
+
+  const clientTsx = `
+    import React from 'react';
+    import { hydrateRoot } from 'react-dom/client';
+    import { BrowserRouter } from 'react-router-dom';
+    import App from './App';
 
     const container = document.getElementById('root') as any;
     const root = hydrateRoot(container, 
-        <Root/>
+      <BrowserRouter>
+      <App {...(window as any)?.__INITIAL__DATA__}/>
+      </BrowserRouter>  
     );
     `;
 
   // create react client.js
-  await fs.writeFile(`./.jaid/client.tsx`, clientJs);
+  await fs.writeFile(`./.jaid/client.tsx`, clientTsx);
 
   await esbuild.build({
     entryPoints: ["./.jaid/client.tsx"],
@@ -233,7 +245,25 @@ export const createBuild = async (options?: {
     loader: {
       ".tsx": "tsx",
     },
+    external: ["fs", "path"],
+    // external: ["fs", "path", "os", "child_process", "readline", "querystring", "crypto", "http", "https", "url", "zlib", "stream", "tty", "util", "assert", "net", "dns", "tls", "events", "buffer", "string_decoder", "punycode", "process", "v8", "vm", "async_hooks", "perf_hooks", "worker_threads", "node:events", "node:fs", "node:os", "node:child_process", "node:readline", "node:querystring", "node:crypto", "node:http", "node:https", "node:url", "node:zlib", "node:stream", "node:tty", "node:util", "node:assert", "node:net", "node:dns", "node:tls", "node:events", "node:buffer", "node:string_decoder", "node:punycode", "node:process", "node:v8", "node:vm", "node:async_hooks", "node:perf_hooks", "node:worker_threads", "ora"]
   });
+
+  // server tsx
+  const serverTsx = `
+    import { createServer } from "jaid";
+    import App from "./App";
+    
+    createServer(App);
+    `;
+
+  // create server.js
+  await fs.writeFile(`./.jaid/server.tsx`, serverTsx);
+
+  // build server
+  const serverResult = compile(serverTsx, tsConfig.complierOptions);
+
+  await writeToFile(`./.jaid/server.js`, serverResult);
 
   await Promise.all(
     allTsx.map(async (page) => {
@@ -246,21 +276,22 @@ export const createBuild = async (options?: {
           `${process.cwd()}/.jaid/cjs/${page.replace("src/", "").replace(".tsx", ".js").replace(".ts", ".js")}`,
           result,
         );
-
-        // logger.debug(
-        //   `${rebuild ? "Rebuilt".padEnd(8) : "Built".padEnd(8)}| ${page}`,
-        // );
       });
     }),
   );
 
-//   delete client.tsx
-    // await fs.rm(`./.jaid/client.tsx`);
+  // remove tsx files
+  await fs.rm(`./.jaid/App.tsx`);
+  await fs.rm(`./.jaid/client.tsx`);
+  await fs.rm(`./.jaid/server.tsx`);
 
-    // build tailwind
-    await exec(`npx tailwindcss build -i ${__dirname}/../../../src/index.css -o ./.jaid/tailwind.css`, {
-        cwd: process.cwd(),
-    });
+  // build tailwind
+  await exec(
+    `npx tailwindcss build -i ${__dirname}/../../../src/index.css -o ./.jaid/tailwind.css`,
+    {
+      cwd: process.cwd(),
+    },
+  );
 
   return p;
 };

@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "NodeNext",
     "jsx": "react", // for React JSX
     "outDir": "./dist", // Output directory for compiled files
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationDir": "./types" // Output directory for declaration files
   },
-  "include": ["src/**/*"], // Adjust this to your source files directory
-  "exclude": ["dist"] // Exclude directories from compilation
+  "include": ["src/**/*", "src/components/.tsx"], // Adjust this to your source files directory
+  "exclude": ["dist", "types"] // Exclude directories from compilation
 }

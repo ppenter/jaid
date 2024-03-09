@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "NodeNext",
     "jsx": "react",
     "outDir": "./dist",
     "strict": true,
@@ -11,7 +11,5 @@
     "paths": {
       "@/*": ["./src/apps/*"]
     }
-  },
-  "include": ["src/**/*"],
-  "exclude": ["dist"]
+  }
 }

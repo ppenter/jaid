@@ -3,9 +3,10 @@
 import { Command } from "commander";
 import child, { spawn, execSync, exec as execute } from "child_process";
 import { promises as fs } from "fs";
-import chokidar from "chokidar";
 import util from "util";
 import tsConfigTemplate from "./templates/tsconfig.json";
+import chokidar from "chokidar";
+const terminate = require("terminate");
 
 const exec = util.promisify(child.exec);
 
@@ -19,8 +20,6 @@ import path from "path";
 import { writeToFile } from "./utils/fs";
 import prompt from "prompts";
 
-import {createServer as viteServer} from "vite"
-
 const linkList = [
   "react",
   "react-dom",
@@ -29,8 +28,7 @@ const linkList = [
   "@types/react",
   "@types/react-dom",
   "@types/react-router-dom",
-  "ts-loader",
-  "react-server-dom-webpack",
+  "@types/react-router",
 ];
 
 // check has jaid.config.json file
@@ -56,11 +54,16 @@ program
   .command("start")
   .description("Start the server")
   .action(async () => {
+    let spinner = logger.spinner("Building").start();
     await createBuild();
-
-    // logger.clear();
-    let server = await createServer();
-    logger.log("Server started on http://localhost:3000");
+    spinner.succeed("Build completed");
+    let app = spawn("ts-node", [`${process.cwd()}/.jaid/server.js`], {
+      stdio: "inherit",
+    })
+      .on("error", (e) => {
+        logger.error(`Error: ${e.message}`);
+      })
+      .on("exit", (code, signal) => {});
   });
 
 program
@@ -74,45 +77,26 @@ program
   .command("dev")
   .description("Start the server and watch for changes")
   .action(async () => {
-    // execute start-server.js with nodemon and watch all files in the src directory
-    // const startServer = spawn("nodemon", [`${__dirname}/start-server.js`, "--watch", `src`, "--watch", `${__dirname}/../`, "--ext", "ts,tsx"], {
-    //   stdio: "inherit",
-    // });
-
-    let app = spawn("jaid", ["start"], {
+    logger.clear();
+    let app = spawn(`jaid`, [`start`], {
       stdio: "inherit",
+      cwd: process.cwd(),
     });
 
     chokidar
       .watch(["src", `${__dirname}/../../src`])
       .on("change", async (path, stats) => {
-        // logger.clear();
-        logger.log("Rebuilding");
-        app.kill();
-        app = spawn("jaid", ["start"], {
+        // // logger.clear();
+        await terminate(app.pid, (err: any) => {});
+        app = spawn("jaid", [`start`], {
           stdio: "inherit",
+        }).on("error", async (e) => {
+          await terminate(app.pid, (err: any) => {});
+          app = spawn("jaid", [`start`], {
+            stdio: "inherit",
+          });
         });
       });
-    // await createBuild();
-
-    // logger.clear();
-    // let server = await createServer();
-    // logger.log("Server started on http://localhost:3000");
-
-    // const watcher = chokidar.watch("src").on("change", async (path, stats) => {
-    //   try {
-    //     await createBuild({
-    //       _pages: [path],
-    //       rebuild: true,
-    //     }).then(async() => {
-    //       logger.log("Rebuilt");
-    //       server.close();
-    //       server = await createServer();
-    //     })
-    //   } catch (e: any) {
-    //     logger.error(`Error: ${e.message}`);
-    //   }
-    // });
   });
 
 program
@@ -201,10 +185,10 @@ export default function Page() {
     await fs.mkdir(`${appDir}/api`);
 
     // create mods folder
-    await fs.mkdir(`${appDir}/mods`);
+    await fs.mkdir(`${appDir}/doctypes`);
 
     // create first mod name the same as the app
-    await fs.mkdir(`${appDir}/mods/${appName}`);
+    await fs.mkdir(`${appDir}/doctypes/${appName}`);
 
     // init git
     await execSync(`git init`, { cwd: appDir });

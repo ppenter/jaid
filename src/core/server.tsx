@@ -4,20 +4,17 @@ import ReactDOMServer, { renderToString } from "react-dom/server";
 import { Html } from "../components/App";
 import { StaticRouter } from "react-router-dom/server";
 import logger from "../lib/logger";
-import {
-  constructNewPath,
-  getAllRewrites,
-  matchPath,
-  rewritePath,
-} from "./rewrite";
-import { getAppConfig, getApps, getPage } from "../utils/fs";
-import nocache from "nocache";
 import { ErrorPage } from "../components/Error";
+import { getApps, getPage } from "../utils/fs";
+import { getAllRewrites, rewritePath } from "./rewrite";
+import { ServerSidePropsProvider } from "../components/SSRPropsContext";
+import { ServerSideParamsProvider } from "../components/SSRParamsContext";
 
 const app = express();
-app.use(nocache());
 
-export const createServer = async (_pages?: any) => {
+export const createServer = async (
+  App: (props?: any) => React.ReactElement,
+) => {
   const _apps = await getApps();
   app.use("/dist", express.static(`.jaid`));
 
@@ -70,24 +67,35 @@ export const createServer = async (_pages?: any) => {
 
       const props = page?.ssp ? await page?.ssp() : undefined;
 
-      if (props) {
-        logger.info(`Serving [SSR] ${page.path}`);
-      } else {
-        logger.info(`Serving [CSR] ${page.path}`);
-      }
+      // if (props) {
+      //   logger.info(`Serving [SSR] ${page.path}`);
+      // } else {
+      //   logger.info(`Serving [CSR] ${page.path}`);
+      // }
 
       const entryPoint = props ? ["/dist/client.js"] : ["/dist/client.js"];
 
       const { pipe, abort: _abort } = ReactDOMServer.renderToPipeableStream(
-        <StaticRouter location={req.url}>
-          <Html>
-            {ServerSideComponent ? (
-              <ServerSideComponent {...props} {...query} />
-            ) : (
-              <ErrorPage />
-            )}
-          </Html>
-        </StaticRouter>,
+        <ServerSidePropsProvider value={props}>
+          <ServerSideParamsProvider
+            value={{
+              ...query,
+              ...page.params,
+            }}
+          >
+            <StaticRouter location={req.url}>
+              <Html
+                props={{
+                  ...props,
+                  ...query,
+                  ...page.params,
+                }}
+              >
+                <App {...props} {...query} />
+              </Html>
+            </StaticRouter>
+          </ServerSideParamsProvider>
+        </ServerSidePropsProvider>,
         {
           bootstrapScripts: entryPoint,
           onShellReady() {
@@ -119,7 +127,9 @@ export const createServer = async (_pages?: any) => {
       );
     }
   });
-  const server = app.listen(3000, () => {});
+  const server = app.listen(3000, () => {
+    logger.spinner("Server started on http://localhost:3000").succeed();
+  });
 
   server.on("close", () => {
     logger.error("Server closed");

@@ -4,33 +4,32 @@ import { getAppConfig } from "../utils/fs";
 
 export function matchPath(path: string, pathRegex: string) {
   let regexPattern = pathRegex
-        .replace(/\/\[\.\.\.(\w+)\]/g, '/(?<$1>.+)') // Replace [...param] with a named capturing group that matches everything
-        .replace(/\/:(\w+)\*/g, '/(?<$1>.+)') // Replace :param* with a named capturing group that matches everything
-        .replace(/\[\.\.\.(\w+)\]/g, '(?<$1>[^/]+)') // Handle embedded wildcards
-        .replace(/:(\w+)/g, '(?<$1>[^/]+)') // Replace :param with a named capturing group that matches until the next slash
-        .replace(/\[(\w+)\]/g, '(?<$1>[^/]+)') // Replace [param] with a named capturing group that matches until the next slash
-        .replace(/\//g, '\\/'); // Escape forward slashes
+    .replace(/\/\[\.\.\.(\w+)\]/g, "/(?<$1>.+)") // Replace [...param] with a named capturing group that matches everything
+    .replace(/\/:(\w+)\*/g, "/(?<$1>.+)") // Replace :param* with a named capturing group that matches everything
+    .replace(/\[\.\.\.(\w+)\]/g, "(?<$1>[^/]+)") // Handle embedded wildcards
+    .replace(/:(\w+)/g, "(?<$1>[^/]+)") // Replace :param with a named capturing group that matches until the next slash
+    .replace(/\[(\w+)\]/g, "(?<$1>[^/]+)") // Replace [param] with a named capturing group that matches until the next slash
+    .replace(/\//g, "\\/"); // Escape forward slashes
 
-    // Add start and end line anchors
-    const regex = new RegExp(`^${regexPattern}$`);
-    
-    const match = path.match(regex);
-    if (match) {
-        let params = {} as any
-        // Extract the named capturing groups as params
-        for (let [key, value] of Object.entries(match.groups || {})) {
-            params[key] = value;
-        }
-        return { match: true, params };
-    } else {
-        return { match: false, params: {} };
+  // Add start and end line anchors
+  const regex = new RegExp(`^${regexPattern}$`);
+
+  const match = path.match(regex);
+  if (match) {
+    let params = {} as any;
+    // Extract the named capturing groups as params
+    for (let [key, value] of Object.entries(match.groups || {})) {
+      params[key] = value;
     }
-
+    return { match: true, params };
+  } else {
+    return { match: false, params: {} };
+  }
 }
 
 export function extractParamsFromPath(path: string, pattern: string) {
-  const {params} = matchPath(path, pattern);
-  return params || null
+  const { params } = matchPath(path, pattern);
+  return params || null;
 }
 
 export function constructNewPath(
