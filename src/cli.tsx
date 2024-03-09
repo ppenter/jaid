@@ -29,6 +29,8 @@ const linkList = [
   "@types/react-dom",
   "@types/react-router-dom",
   "@types/react-router",
+  "@types/node",
+  "jaid"
 ];
 
 // check has jaid.config.json file
@@ -54,7 +56,7 @@ program
   .command("start")
   .description("Start the server")
   .action(async () => {
-    let spinner = logger.spinner("Building").start();
+    let spinner = logger.spinner("Rebuilding").start();
     await createBuild();
     spinner.succeed("Build completed");
     let app = spawn("ts-node", [`${process.cwd()}/.jaid/server.js`], {
@@ -107,9 +109,10 @@ program
     const cli_root = `${__dirname}/../..`;
     const project_root = process.cwd();
 
+    let spinner = logger.spinner("Setting up").start();
+
     await Promise.all(
       linkList.map(async (pack: string) => {
-        logger.info(`Linking ${pack}`);
         await exec(`yarn unlink ${pack}`, {
           cwd: `${cli_root}/node_modules/${pack}`,
         })
@@ -130,6 +133,9 @@ program
           .catch(() => {});
       }),
     );
+
+    spinner.succeed("Setup completed, please restart the ts server");
+
   });
 
 program
@@ -174,12 +180,15 @@ export default function Page() {
   `,
     );
 
-    const appJson = {
-      name: appName,
-      version: "0.0.1",
-    };
+    const appJs = `
+    module.exports = {
+      "name": "${appName}",
+      "version": "0.0.1",
+      "rewrites": []
+    }
+    `
 
-    await writeToFile(`${appDir}/app.json`, JSON.stringify(appJson, null, 2));
+    await writeToFile(`${appDir}/app.js`, appJs);
 
     // create api folder
     await fs.mkdir(`${appDir}/api`);

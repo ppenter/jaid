@@ -78,20 +78,18 @@ export const createServer = async (
       const { pipe, abort: _abort } = ReactDOMServer.renderToPipeableStream(
         <ServerSidePropsProvider value={props}>
           <ServerSideParamsProvider
-            value={{
-              ...query,
-              ...page.params,
-            }}
+            value={{}}
           >
             <StaticRouter location={req.url}>
               <Html
                 props={{
                   ...props,
-                  ...query,
-                  ...page.params,
+                  query: query || {},
+                  params: page.params || {},
                 }}
+                css={page.css}
               >
-                <App {...props} {...query} />
+                <App {...props} query={query || {}} params={page?.params || {}} />
               </Html>
             </StaticRouter>
           </ServerSideParamsProvider>
@@ -100,7 +98,7 @@ export const createServer = async (
           bootstrapScripts: entryPoint,
           onShellReady() {
             res.statusCode = 200;
-            res.setHeader("Content-type", "text/html");
+            res.setHeader("Content-type", "text/html; charset=utf-8");
             pipe(res);
           },
           onShellError() {
@@ -128,7 +126,7 @@ export const createServer = async (
     }
   });
   const server = app.listen(3000, () => {
-    logger.spinner("Server started on http://localhost:3000").succeed();
+    // logger.spinner("Server started on http://localhost:3000").succeed();
   });
 
   server.on("close", () => {

@@ -5,4 +5,5 @@ import { ErrorPage } from "./components/Error";
 import { getApps, getPage } from "./utils/fs";
 import { getAllRewrites, rewritePath } from "./core/rewrite";
 import { createServer } from "./core/server";
-export { Html, StaticRouter, logger, ErrorPage, getApps, getPage, getAllRewrites, rewritePath, createServer, };
+import { delay } from "./utils/time";
+export { Html, StaticRouter, logger, ErrorPage, getApps, getPage, getAllRewrites, rewritePath, createServer, delay };

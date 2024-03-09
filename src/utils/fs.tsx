@@ -63,8 +63,8 @@ export const getPage = async (path: string) => {
       if (match) {
         page_params = params;
       }
-      return match;
-    });
+      return match
+    }) as any
 
     if (!_page_path) {
       throw new Error("Page not found");
@@ -73,11 +73,22 @@ export const getPage = async (path: string) => {
       `Found page: ${_page_path} with params: ${JSON.stringify(page_params)}`,
     );
 
+
     // const page_path = `${process.cwd()}/${BUILD_CONSTANT.appsDir}${path}.tsx`;
     const page_path = `${process.cwd()}/.jaid/cjs/${removeExtension(_page_path.split("src/").pop() || "")}.js`;
+    const data_path = page_path.replace("page.js", "data.js");
     await fs.stat(page_path);
 
     const page = await import(page_path);
+
+    const data = await (async () => {
+      try{
+        const _props = await import(data_path);
+        return _props
+      }catch(e){
+        return undefined
+      }
+    })()
 
     const js = `/dist/${_page_path.replace(".tsx", ".js").split("src/").pop()}`;
 
@@ -86,7 +97,8 @@ export const getPage = async (path: string) => {
       js: js,
       path: _page_path,
       params: page_params as any,
-      ssp: page?.getServerSideProps,
+      ssp: data?.getServerSideProps || undefined,
+      css: page?.getStyleSheet || undefined,
     };
   } catch (e) {
     logger.error(`404: ${path} ${e}`);
@@ -103,9 +115,9 @@ export const getAppConfig = async (app: string) => {
     const appConfigPath = `${process.cwd()}/src/apps/${app}/app.js`;
     await fs.stat(appConfigPath);
     const appJS = await import(appConfigPath);
-    return appJS?.config || {};
+    return appJS?.default || {};
   } catch (e) {
-    logger.error(`404: ${app} ${e}`);
+    logger.error(`App config not found for ${app}`);
     return {};
   }
 };

@@ -6,15 +6,17 @@ export declare const getPages: (dir: string, options: {
 export declare const getPage: (path: string) => Promise<{
     page: any;
     js: string;
-    path: string;
+    path: any;
     params: any;
     ssp: any;
+    css: any;
 } | {
     page: null;
     js: string;
     path?: undefined;
     params?: undefined;
     ssp?: undefined;
+    css?: undefined;
 }>;
 export declare const getAppConfig: (app: string) => Promise<any>;
 export declare const writeToFile: (path: string, content: string) => Promise<void>;
