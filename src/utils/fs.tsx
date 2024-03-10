@@ -4,7 +4,7 @@ import { BUILD_CONSTANT } from "../constant";
 import logger from "../lib/logger";
 import storage from "../lib/storage";
 import { matchPath } from "../core/rewrite";
-import { JSDOM } from "jsdom";
+import { pathToFileURL } from "node:url";
 
 export const removeExtension = (file: string) => {
   return file.split(".").slice(0, -1).join(".");
@@ -28,14 +28,15 @@ export const getPages = async (
   const files = await fs.readdir(dir);
   const pages = (await Promise.all(
     files.map(async (file) => {
-      const filePath = path.join(dir, file);
+      const filePath = path.normalize(path.join(dir, file)).replace(/\\/g, "/");
       const stats = await fs.stat(filePath);
       if (stats.isDirectory()) {
         return await getPages(filePath, options);
       } else {
         if (options.exts.includes(path.extname(file))) {
-          const chpath = `${BUILD_CONSTANT.appsDir}/:app/:path*`;
+        const chpath = `${BUILD_CONSTANT.appsDir}/:app/:path*`;
           const { match } = matchPath(removeExtension(filePath), chpath);
+          // console.log(`Checking file: ${removeExtension(filePath)} | ${chpath} | ${match}`)
           if (match) {
             return filePath;
           } else {
@@ -46,7 +47,7 @@ export const getPages = async (
     }) as any,
   )) as any;
   return pages
-    .filter((page?: string) => page !== undefined)
+    .filter((page?: string) => page)
     .flat(Infinity) as string[];
 };
 
@@ -78,11 +79,11 @@ export const getPage = async (path: string) => {
     const data_path = page_path.replace("page.js", "data.js");
     await fs.stat(page_path);
 
-    const page = await import(page_path);
+    const page = await import(pathToFileURL(page_path).href);
 
     const data = await (async () => {
       try {
-        const _props = await import(data_path);
+        const _props = await import(pathToFileURL(data_path).href);
         return _props;
       } catch (e) {
         return undefined;
@@ -111,12 +112,14 @@ export const getPage = async (path: string) => {
 export const getAppConfig = async (app: string) => {
   try {
     // const appConfigPath = `src/apps/${app}/app.ts`
-    const appConfigPath = `${process.cwd()}/src/apps/${app}/app.js`;
-    await fs.stat(appConfigPath);
+    const appConfigPath = pathToFileURL(`src/apps/${app}/app.js`).href
+    await fs.stat(`src/apps/${app}/app.js`);
     const appJS = await import(appConfigPath);
     return appJS?.default || {};
   } catch (e) {
-    logger.error(`App config not found for ${app}`);
+    logger.error(`App config not found for ${app}
+    ${e}
+    `);
     return {};
   }
 };

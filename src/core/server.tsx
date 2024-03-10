@@ -9,6 +9,7 @@ import { getApps, getPage } from "../utils/fs";
 import { getAllRewrites, rewritePath } from "./rewrite";
 import { ServerSidePropsProvider } from "../components/SSRPropsContext";
 import { ServerSideParamsProvider } from "../components/SSRParamsContext";
+import { pathToFileURL } from "node:url";
 
 const app = express();
 
@@ -47,7 +48,7 @@ export const createServer = async (
 
       const reqMethod = req.method.toLowerCase();
       const apiPath = `${process.cwd()}/.jaid/cjs/apps/${app}/api/${path}.js`;
-      const api = await import(apiPath);
+      const api = await import(pathToFileURL(apiPath).href);
       const handler = api[reqMethod.toUpperCase()];
       const data = await handler(req, res);
       res.status(200).send(data);

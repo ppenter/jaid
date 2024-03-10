@@ -62,6 +62,7 @@ program
     spinner.clear();
     let app = spawn("ts-node", [`${process.cwd()}/.jaid/server.js`], {
       stdio: "inherit",
+      shell: true,
     })
       .on("error", (e) => {
         logger.error(`Error: ${e.message}`);
@@ -84,6 +85,7 @@ program
     let app = spawn(`jaid`, [`start`], {
       stdio: "inherit",
       cwd: process.cwd(),
+      shell: true,
     });
 
     chokidar
@@ -93,10 +95,12 @@ program
         await terminate(app.pid, (err: any) => {});
         app = spawn("jaid", [`start`], {
           stdio: "inherit",
+          shell: true,
         }).on("error", async (e) => {
           await terminate(app.pid, (err: any) => {});
           app = spawn("jaid", [`start`], {
             stdio: "inherit",
+            shell: true,
           });
         });
       });

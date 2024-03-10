@@ -125,6 +125,7 @@ export const createBuild = async (options?: {
       )
     ).flat(Infinity) as string[]);
 
+    // console.log(`Page Count: ${allTsx.length}`)
   lap("Get All TSX");
 
   const onlyPages = allTsx.filter((page) => {
@@ -183,7 +184,7 @@ export const createBuild = async (options?: {
     ${Object.keys(pageIndex)
       .map((page) => {
         const index = pageIndex[page].index;
-        return `import ${index} from '${process.cwd()}/${page.replace(".tsx", "")}'`;
+        return `import ${index} from '../${page.replace(".tsx", "")}'`;
       })
       .join("\n")}
 
@@ -364,6 +365,7 @@ export const createBuild = async (options?: {
         //   `${process.cwd()}/.jaid/cjs/${page.replace("src/", "").replace(".tsx", ".js").replace(".ts", ".js")}`,
         //   result,
         // );
+
         await esbuild.build({
           entryPoints: [page],
           bundle: true,
@@ -386,7 +388,7 @@ export const createBuild = async (options?: {
             logLevel: "silent",
           });
         } catch (e) {
-          // console.log()
+          // console.log(e)
         }
 
         if (storage.get("pages")[page]) {
@@ -423,9 +425,11 @@ export const createBuild = async (options?: {
   //   },
   // );
 
-  // lap("Build Tailwind");
+  lap("Build Tailwind");
 
   // console.table(buildTime);
+
+  // logger.log("Build Complete");
 
   return p;
 };
