@@ -1,6 +1,6 @@
 {
   "name": "jaid",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "main": "dist/src/index.js",
   "files": [
     "dist",
