@@ -405,13 +405,13 @@ export const createBuild = async (options?: {
   lap("Create Pages");
 
   // remove tsx files
-  await fs.rm(`./.jaid/App.tsx`);
-  await fs.rm(`./.jaid/client.tsx`);
-  await fs.rm(`./.jaid/server.tsx`);
-  // remove css files
-  await fs.rm(`./.jaid/App.css`);
-  await fs.rm(`./.jaid/client.css`);
-  await fs.rm(`./.jaid/server.css`);
+  // await fs.rm(`./.jaid/App.tsx`);
+  // await fs.rm(`./.jaid/client.tsx`);
+  // await fs.rm(`./.jaid/server.tsx`);
+  // // remove css files
+  // await fs.rm(`./.jaid/App.css`);
+  // await fs.rm(`./.jaid/client.css`);
+  // await fs.rm(`./.jaid/server.css`);
 
   // lap("Remove TSX");
 

@@ -10,6 +10,7 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationDir": "./types" // Output directory for declaration files
+    
   },
   "include": ["src/**/*", "src/components/.tsx"], // Adjust this to your source files directory
   "exclude": ["dist", "types"] // Exclude directories from compilation

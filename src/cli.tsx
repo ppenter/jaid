@@ -212,11 +212,24 @@ export default function Page() {
 program
   .command("mkproj")
   .description("Create a new project")
-  .requiredOption("-n , --name <name>", "Name of the project")
+  .option("-n , --name <name>", "Name of the project")
   .option("-b, --branch <branch>", "Branch of the repository")
   .action(async (options) => {
     // check the folder exist
-    const { name: projName, branch } = options || {};
+    const { name, branch } = options || {};
+
+    let projName = name;
+
+    // if no name is provided ask for the name
+    if (!projName) {
+      const { name } = await prompt({
+        type: "text",
+        name: "name",
+        message: "Enter the name of the project",
+      });
+      projName = name;
+    }
+
     const projectDir = path.resolve(`${process.cwd()}/${projName}`);
     const hasDir = await fs.stat(projectDir).catch(() => null);
     if (hasDir) {
@@ -269,10 +282,10 @@ module.exports = {
     await fs.mkdir(`${projectDir}/src/apps`);
     await fs.mkdir(`${projectDir}/src/sites`);
 
-    // await writeToFile(
-    //   `${projectDir}/tsconfig.json`,
-    //   JSON.stringify(tsConfigTemplate, null, 2),
-    // );
+    await writeToFile(
+      `${projectDir}/tsconfig.json`,
+      JSON.stringify(tsConfigTemplate, null, 2),
+    );
 
     spinner.stop();
     logger.success(`Successfully created project ${projName}`);
@@ -336,7 +349,7 @@ program
 
     // clone from the repository
     await exec(
-      `git clone ${repository || `${jaidConfig.repository}/${appName}` || `https://github.com/ppenter/${appName}`} ${branch ? `-b ${branch}` : ""}`,
+      `git clone ${repository || `${jaidConfig?.repository || `https://github.com/ppenter`}/${appName}`} ${branch ? `-b ${branch}` : ""}`,
       { cwd: path.resolve(process.cwd(), "src/apps") },
     );
 
