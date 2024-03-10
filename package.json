@@ -1,6 +1,6 @@
 {
   "name": "jaid",
-  "version": "0.0.05",
+  "version": "0.0.6",
   "main": "dist/src/index.js",
   "exports": {
     "./hooks": {
