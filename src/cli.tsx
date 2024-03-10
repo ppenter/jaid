@@ -112,14 +112,18 @@ program
 
     let spinner = logger.spinner("Setting up").start();
 
+    // get yarn global dir
+    const yarnGlobalDir = execSync("yarn global dir").toString().trim();
+    
+
     await Promise.all(
       linkList.map(async (pack: string) => {
         await exec(`yarn unlink ${pack}`, {
-          cwd: `${cli_root}/node_modules/${pack}`,
+          cwd: `${yarnGlobalDir}/node_modules/${pack}`,
         })
           .then(() => {})
           .catch(() => {});
-        await exec(`yarn link`, { cwd: `${cli_root}/node_modules/${pack}` })
+        await exec(`yarn link`, { cwd: `${yarnGlobalDir}/node_modules/${pack}` })
           .then(() => {})
           .catch(() => {});
         await exec(`yarn unlink ${pack}`, {
