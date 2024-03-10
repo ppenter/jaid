@@ -5,6 +5,4 @@ export const BUILD_CONSTANT = {
   pageFileName: "page.tsx",
 };
 
-export const PRESERVE_REWRITES = [
-
-];
+export const PRESERVE_REWRITES = [];

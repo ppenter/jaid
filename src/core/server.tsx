@@ -71,9 +71,7 @@ export const createServer = async (
 
       const { pipe, abort: _abort } = ReactDOMServer.renderToPipeableStream(
         <ServerSidePropsProvider value={props}>
-          <ServerSideParamsProvider
-            value={{}}
-          >
+          <ServerSideParamsProvider value={{}}>
             <StaticRouter location={req.url}>
               <Html
                 props={{
@@ -83,7 +81,11 @@ export const createServer = async (
                 }}
                 css={page.css}
               >
-                <App {...props} query={query || {}} params={page?.params || {}} />
+                <App
+                  {...props}
+                  query={query || {}}
+                  params={page?.params || {}}
+                />
               </Html>
             </StaticRouter>
           </ServerSideParamsProvider>

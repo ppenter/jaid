@@ -11,4 +11,4 @@ export interface IResponse {
     status: (code: number) => void;
     cookie: (name: string, value: string, options: any) => void;
 }
-export { Html, StaticRouter, logger, ErrorPage, getApps, getPage, getAllRewrites, rewritePath, createServer, delay };
+export { Html, StaticRouter, logger, ErrorPage, getApps, getPage, getAllRewrites, rewritePath, createServer, delay, };

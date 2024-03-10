@@ -53,7 +53,7 @@ export const getAllRewrites = async (apps: string[]) => {
       return app_config?.rewrites || [];
     }),
   );
-  return rewrites.flat(Infinity);
+  return [...rewrites.flat(Infinity), ...PRESERVE_REWRITES];
 };
 
 export const reverseRewrite = (path: string, rewrites: any[]) => {
@@ -67,7 +67,7 @@ export const reverseRewrite = (path: string, rewrites: any[]) => {
 };
 
 export const rewritePath = (path: string, rewrites: any[]) => {
-  const _rewrites = [...PRESERVE_REWRITES, ...rewrites];
+  const _rewrites = [...rewrites, ...PRESERVE_REWRITES];
   for (const rewrite of _rewrites) {
     const { match, params } = matchPath(path, rewrite.from);
     if (match) {

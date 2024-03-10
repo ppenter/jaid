@@ -63,8 +63,8 @@ export const getPage = async (path: string) => {
       if (match) {
         page_params = params;
       }
-      return match
-    }) as any
+      return match;
+    }) as any;
 
     if (!_page_path) {
       throw new Error("Page not found");
@@ -72,7 +72,6 @@ export const getPage = async (path: string) => {
     logger.debug(
       `Found page: ${_page_path} with params: ${JSON.stringify(page_params)}`,
     );
-
 
     // const page_path = `${process.cwd()}/${BUILD_CONSTANT.appsDir}${path}.tsx`;
     const page_path = `${process.cwd()}/.jaid/cjs/${removeExtension(_page_path.split("src/").pop() || "")}.js`;
@@ -82,13 +81,13 @@ export const getPage = async (path: string) => {
     const page = await import(page_path);
 
     const data = await (async () => {
-      try{
+      try {
         const _props = await import(data_path);
-        return _props
-      }catch(e){
-        return undefined
+        return _props;
+      } catch (e) {
+        return undefined;
       }
-    })()
+    })();
 
     const js = `/dist/${_page_path.replace(".tsx", ".js").split("src/").pop()}`;
 

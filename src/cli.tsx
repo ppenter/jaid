@@ -30,7 +30,7 @@ const linkList = [
   "@types/react-router-dom",
   "@types/react-router",
   "@types/node",
-  "jaid"
+  "jaid",
 ];
 
 // check has jaid.config.json file
@@ -58,7 +58,8 @@ program
   .action(async () => {
     let spinner = logger.spinner("Rebuilding").start();
     await createBuild();
-    spinner.succeed("Build completed");
+    spinner.stop()
+    spinner.clear();
     let app = spawn("ts-node", [`${process.cwd()}/.jaid/server.js`], {
       stdio: "inherit",
     })
@@ -135,7 +136,6 @@ program
     );
 
     spinner.succeed("Setup completed, please restart the ts server");
-
   });
 
 program
@@ -186,7 +186,7 @@ export default function Page() {
       "version": "0.0.1",
       "rewrites": []
     }
-    `
+    `;
 
     await writeToFile(`${appDir}/app.js`, appJs);
 
@@ -212,9 +212,11 @@ export default function Page() {
 program
   .command("mkproj")
   .description("Create a new project")
-  .argument("<project-name>", "Name of the project")
-  .action(async (projName) => {
+  .requiredOption("-n , --name <name>", "Name of the project")
+  .option("-b, --branch <branch>", "Branch of the repository")
+  .action(async (options) => {
     // check the folder exist
+    const { name: projName, branch } = options || {};
     const projectDir = path.resolve(`${process.cwd()}/${projName}`);
     const hasDir = await fs.stat(projectDir).catch(() => null);
     if (hasDir) {
@@ -267,13 +269,19 @@ module.exports = {
     await fs.mkdir(`${projectDir}/src/apps`);
     await fs.mkdir(`${projectDir}/src/sites`);
 
-    await writeToFile(
-      `${projectDir}/tsconfig.json`,
-      JSON.stringify(tsConfigTemplate, null, 2),
-    );
+    // await writeToFile(
+    //   `${projectDir}/tsconfig.json`,
+    //   JSON.stringify(tsConfigTemplate, null, 2),
+    // );
 
     spinner.stop();
     logger.success(`Successfully created project ${projName}`);
+
+    // get-app jaidee
+
+    await exec(`jaid get-app jaidee `, {
+      cwd: projectDir,
+    });
 
     logger.info(`Run 'cd ${projName}' to enter the project directory`);
     // Example command usages
@@ -286,8 +294,22 @@ module.exports = {
 program
   .command("get-app")
   .description("Get app from the repository")
-  .argument("<app-name>", "Name of the app")
-  .action(async (appName) => {
+  .argument("<name>", "Name of the app")
+  .option("-b, --branch <branch>", "Branch of the repository")
+  .action(async (name, options) => {
+    const { branch } = options;
+
+    // if name is the repository url then appName is the last part of the url else it is the name
+    let appName = name;
+
+    if (appName.startsWith("http")) {
+      const url = new URL(appName);
+      appName = url.pathname.split("/").pop();
+    }
+
+    // base repository url example https://github.com/ppenter
+    const repository = name?.startsWith("http") ? name : undefined;
+
     const appDir = path.resolve(process.cwd(), "src/apps", appName);
     const hasDir = await fs.stat(appDir).catch(() => null);
     if (hasDir) {
@@ -313,8 +335,8 @@ program
     const jaidConfig = JSON.parse(await fs.readFile(jaidConfigPath, "utf-8"));
 
     // clone from the repository
-    await execSync(
-      `git clone ${jaidConfig.repository || "https://github.com/ppenter"}/${appName}`,
+    await exec(
+      `git clone ${repository || `${jaidConfig.repository}/${appName}` || `https://github.com/ppenter/${appName}`} ${branch ? `-b ${branch}` : ""}`,
       { cwd: path.resolve(process.cwd(), "src/apps") },
     );
 
@@ -323,6 +345,37 @@ program
     logger.info(
       `Run 'jaid dev' to start the server and try to visit http://localhost:3000/${appName}/pages/landing`,
     );
+  });
+
+// remove app
+program
+  .command("remove-app")
+  .description("Remove app from the project")
+  .argument("<name>", "Name of the app")
+  .action(async (name) => {
+    const appDir = path.resolve(process.cwd(), "src/apps", name);
+    const hasDir = await fs.stat(appDir).catch(() => null);
+    if (!hasDir) {
+      logger.error("App not found");
+      return;
+    }
+
+    const { confirm } = await prompt({
+      type: "confirm",
+      name: "confirm",
+      message: "Are you sure you want to remove the app?",
+    });
+
+    if (!confirm) {
+      logger.error("Aborted");
+      return;
+    }
+
+    const spinner = logger.spinner("Removing app").start();
+    await delay(1000);
+    await fs.rm(appDir, { recursive: true });
+    spinner.stop();
+    logger.success(`Successfully removed app ${name}`);
   });
 
 program.parse(process.argv);

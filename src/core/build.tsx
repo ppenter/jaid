@@ -13,31 +13,36 @@ import path from "path";
 const exec = util.promisify(child.exec);
 
 const CSSPlugin = {
-  name: 'css-inject',
+  name: "css-inject",
   setup(build: any) {
     // Filter for .tsx files
-    build.onLoad({ filter: /\.tsx$/ }, async (args: { path: PathLike | fs.FileHandle; }) => {
-      let contents = await fs.readFile(args.path, 'utf8');
+    build.onLoad(
+      { filter: /\.tsx$/ },
+      async (args: { path: PathLike | fs.FileHandle }) => {
+        let contents = await fs.readFile(args.path, "utf8");
 
-      // Regex to find CSS import statements
-      const cssImportRegex = /import\s+['"](.+\.css)['"];?/g;
+        // Regex to find CSS import statements
+        const cssImportRegex = /import\s+['"](.+\.css)['"];?/g;
 
-      // Replace each CSS import with an inject function
-      contents = contents.replace(cssImportRegex, (match, cssPath) => {
-        // Resolve the CSS path relative to the .tsx file
-        const fullPath = `${path.dirname(args.path.toString())}/${cssPath}`;
-        const cssCode = fss.readFileSync(fullPath, 'utf8').trim().replace(/`/g, '\\`');
-        // Return a replacement code that injects the CSS into the document
-        return `
+        // Replace each CSS import with an inject function
+        contents = contents.replace(cssImportRegex, (match, cssPath) => {
+          // Resolve the CSS path relative to the .tsx file
+          const fullPath = `${path.dirname(args.path.toString())}/${cssPath}`;
+          const cssCode = fss
+            .readFileSync(fullPath, "utf8")
+            .trim()
+            .replace(/`/g, "\\`");
+          // Return a replacement code that injects the CSS into the document
+          return `
         export const getStyleSheet = \`${cssCode}\`;
         `;
-      });
+        });
 
-      return { contents, loader: 'tsx' };
-    });
+        return { contents, loader: "tsx" };
+      },
+    );
   },
 };
-
 
 export const filePathToImportName = (filePath: string) => {
   // replace / with _ and remove .tsx replace : with empty
@@ -80,8 +85,8 @@ export const createBuild = async (options?: {
     {
       title: "Start Build",
       time: (time - Date.now()) / 1000,
-    }
-  ]
+    },
+  ];
   const lap = (title: string) => {
     // console.log(`${title} - ${((Date.now() - time) / 1000).toFixed(2)}s`);
     buildTime.push({
@@ -89,7 +94,7 @@ export const createBuild = async (options?: {
       time: (time - Date.now()) / 1000,
     });
     time = Date.now();
-  }
+  };
   // !rebuild && logger.log("Retriving Pages");
 
   // if not rebuild delete .jaid folder
@@ -192,12 +197,10 @@ export const createBuild = async (options?: {
             const rewritePath = pageIndex[page].rewritePath
               .replace(/\[\.\.\.(.*)\]/, "*")
               .replace(/\[(.*)\]/, ":$1");
-            return(
-              `
+            return `
             <Route path="${rewritePath}"  element={<${index} {...props}/>} />
             <Route path="${path}"  element={<${index} {...props}/>} />
-            `
-            );
+            `;
           })
           .join("\n")}
           <Route path="*" element={<div>Not Found</div>} />
@@ -222,7 +225,66 @@ export const createBuild = async (options?: {
       ".ts": "ts",
     },
     // external: ["fs", "path"],
-    external: ["fs", "path", "os", "child_process", "readline", "querystring", "crypto", "http", "https", "url", "zlib", "stream", "tty", "util", "assert", "net", "dns", "tls", "events", "buffer", "string_decoder", "punycode", "process", "v8", "vm", "async_hooks", "perf_hooks", "worker_threads", "node:events", "node:fs", "node:os", "node:child_process", "node:readline", "node:querystring", "node:crypto", "node:http", "node:https", "node:url", "node:zlib", "node:stream", "node:tty", "node:util", "node:assert", "node:net", "node:dns", "node:tls", "node:events", "node:buffer", "node:string_decoder", "node:punycode", "node:process", "node:v8", "node:vm", "node:async_hooks", "node:perf_hooks", "node:worker_threads", "ora", "esbuild"]
+    external: [
+      "fs",
+      "path",
+      "os",
+      "child_process",
+      "readline",
+      "querystring",
+      "crypto",
+      "http",
+      "https",
+      "url",
+      "zlib",
+      "stream",
+      "tty",
+      "util",
+      "assert",
+      "net",
+      "dns",
+      "tls",
+      "events",
+      "buffer",
+      "string_decoder",
+      "punycode",
+      "process",
+      "v8",
+      "vm",
+      "async_hooks",
+      "perf_hooks",
+      "worker_threads",
+      "node:events",
+      "node:fs",
+      "node:os",
+      "node:child_process",
+      "node:readline",
+      "node:querystring",
+      "node:crypto",
+      "node:http",
+      "node:https",
+      "node:url",
+      "node:zlib",
+      "node:stream",
+      "node:tty",
+      "node:util",
+      "node:assert",
+      "node:net",
+      "node:dns",
+      "node:tls",
+      "node:events",
+      "node:buffer",
+      "node:string_decoder",
+      "node:punycode",
+      "node:process",
+      "node:v8",
+      "node:vm",
+      "node:async_hooks",
+      "node:perf_hooks",
+      "node:worker_threads",
+      "ora",
+      "esbuild",
+    ],
   });
 
   lap("Create App TSX");
@@ -266,7 +328,7 @@ export const createBuild = async (options?: {
     async function main() {
     let spinner = await logger.spinner("Building").start();
     await createServer(App);
-    await spinner.succeed("Server Started ");
+    await spinner.succeed("🚀 Server @ http://localhost:3000");
     }
     main();
     `;
@@ -305,7 +367,7 @@ export const createBuild = async (options?: {
         await esbuild.build({
           entryPoints: [page],
           bundle: true,
-          outfile: `${process.cwd()}/.jaid/cjs/${page.replace('.tsx', '.js').replace('.ts', '.js').replace('src/', '')}`,
+          outfile: `${process.cwd()}/.jaid/cjs/${page.replace(".tsx", ".js").replace(".ts", ".js").replace("src/", "")}`,
           loader: {
             ".tsx": "tsx",
             ".ts": "ts",
@@ -315,28 +377,27 @@ export const createBuild = async (options?: {
           // external: ["fs", "path", "os", "child_process", "readline", "querystring", "crypto", "http", "https", "url", "zlib", "stream", "tty", "util", "assert", "net", "dns", "tls", "events", "buffer", "string_decoder", "punycode", "process", "v8", "vm", "async_hooks", "perf_hooks", "worker_threads", "node:events", "node:fs", "node:os", "node:child_process", "node:readline", "node:querystring", "node:crypto", "node:http", "node:https", "node:url", "node:zlib", "node:stream", "node:tty", "node:util", "node:assert", "node:net", "node:dns", "node:tls", "node:events", "node:buffer", "node:string_decoder", "node:punycode", "node:process", "node:v8", "node:vm", "node:async_hooks", "node:perf_hooks", "node:worker_threads", "ora"]
         });
 
-        const css_path = page.replace('.tsx', '.css').replace('.ts', '.css');
-        try{
+        const css_path = page.replace(".tsx", ".css").replace(".ts", ".css");
+        try {
           await esbuild.build({
-            entryPoints: [page.replace('.tsx', '.css').replace('.ts', '.css')],
+            entryPoints: [page.replace(".tsx", ".css").replace(".ts", ".css")],
             bundle: true,
-            outfile: `${process.cwd()}/.jaid/cjs/${page.replace('.tsx', '.css').replace('.ts', '.css').replace('src/', '')}`,
-            logLevel: "silent"
+            outfile: `${process.cwd()}/.jaid/cjs/${page.replace(".tsx", ".css").replace(".ts", ".css").replace("src/", "")}`,
+            logLevel: "silent",
           });
-        }catch(e){
+        } catch (e) {
           // console.log()
         }
 
-        if(storage.get("pages")[page]){
+        if (storage.get("pages")[page]) {
           storage.put("pages", {
             ...storage.get("pages"),
             [page]: {
               ...storage.get("pages")[page],
-              css: `dist/cjs/${css_path.replace('src/', '')}`
-            }
-          })
+              css: `dist/cjs/${css_path.replace("src/", "")}`,
+            },
+          });
         }
-
       });
     }),
   );
