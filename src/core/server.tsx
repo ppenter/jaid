@@ -67,12 +67,6 @@ export const createServer = async (
 
       const props = page?.ssp ? await page?.ssp() : undefined;
 
-      // if (props) {
-      //   logger.info(`Serving [SSR] ${page.path}`);
-      // } else {
-      //   logger.info(`Serving [CSR] ${page.path}`);
-      // }
-
       const entryPoint = props ? ["/dist/client.js"] : ["/dist/client.js"];
 
       const { pipe, abort: _abort } = ReactDOMServer.renderToPipeableStream(
