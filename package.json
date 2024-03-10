@@ -1,7 +1,11 @@
 {
   "name": "jaid",
-  "version": "0.0.6",
+  "version": "0.0.14",
   "main": "dist/src/index.js",
+  "files": [
+    "dist",
+    "types"
+  ],
   "exports": {
     "./hooks": {
       "default": "./dist/src/hooks/index.js",
@@ -34,7 +38,7 @@
   },
   "author": "Jarupak Srisuchat <jarupak.sri@gmail.com>",
   "scripts": {
-    "link-cli": "yarn link --global && chmod +x ./dist/src/index.js",
+    "link-cli": "yarn link --global && chmod +x ./dist/src/cli.js",
     "dev": "tsc -w",
     "build-cli": "esbuild src/cli.tsx --bundle --outdir=./buildes --format=cjs --platform=node --external:'esbuild' --packages=external"
   },
@@ -43,6 +47,8 @@
     "@swc/core": "^1.4.6",
     "@twind/core": "^1.1.3",
     "@types/express": "^4.17.21",
+    "@types/react": "^18.2.58",
+    "@types/react-dom": "^18.2.19",
     "child_process": "^1.0.2",
     "chokidar": "^3.6.0",
     "commander": "^12.0.0",
@@ -58,6 +64,7 @@
     "prompts": "^2.4.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.1",
     "tailwindcss": "^3.4.1",
     "terminate": "^2.6.1",
     "tslog": "^4.9.2",
@@ -67,8 +74,6 @@
   "devDependencies": {
     "@types/prompt": "^1.1.8",
     "@types/prompts": "^2.4.9",
-    "@types/react": "^18.2.58",
-    "@types/react-dom": "^18.2.19",
     "autoprefixer": "^10.4.17",
     "cookie-parser": "^1.4.6",
     "esbuild-css-modules-plugin": "^3.1.0",
@@ -76,7 +81,6 @@
     "mkdirp": "^3.0.1",
     "postcss": "^8.4.35",
     "prettier": "3.2.5",
-    "react-router-dom": "^6.22.1",
     "react-server-dom-webpack": "0.0.0-experimental-41b4714f1-20230328",
     "ts-loader": "^9.5.1",
     "webpack": "^5.90.3"
