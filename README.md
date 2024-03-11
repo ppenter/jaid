@@ -10,7 +10,6 @@ Jaid is and CLI for Jaidee Framework which provided commands to develop, manage 
 * Yarn
 * Git cli
 * ts-node
-* [Jaid Cli](https://github.com/ppenter/jaid)
 
 ## Battery included
 
