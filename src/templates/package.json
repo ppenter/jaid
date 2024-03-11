@@ -1,0 +1,8 @@
+{
+    "scripts": {
+        "dev": "jaid dev",
+        "start": "jaid start",
+        "build": "jaid build"
+    },
+    "license": "MIT"
+}

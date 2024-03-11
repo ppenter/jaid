@@ -5,6 +5,7 @@ import child, { spawn, execSync, exec as execute } from "child_process";
 import { promises as fs } from "fs";
 import util from "util";
 import tsConfigTemplate from "./templates/tsconfig.json";
+import packageTemplate from "./templates/package.json";
 import chokidar from "chokidar";
 const terminate = require("terminate");
 
@@ -293,6 +294,11 @@ module.exports = {
     await writeToFile(
       `${projectDir}/tsconfig.json`,
       JSON.stringify(tsConfigTemplate, null, 2),
+    );
+
+    await writeToFile(
+      `${projectDir}/package.json`,
+      JSON.stringify(packageTemplate, null, 2),
     );
 
     spinner.stop();
